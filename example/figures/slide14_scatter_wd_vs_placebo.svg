@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- This is a Stata 19.5 generated SVG file (http://www.stata.com) -->
+
+<svg version="1.1" width="8.000in" height="5.000in" viewBox="0 0 5760 3600" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<desc>Stata Graph - Graph</desc>
+	<rect x="0" y="0" width="5760" height="3600" style="fill:#FFFFFF;stroke:none"/>
+	<rect x="0.00" y="0.00" width="5760.00" height="3600.00" style="fill:#FFFFFF"/>
+	<rect x="3.60" y="3.60" width="5752.80" height="3592.80" style="fill:none;stroke:#FFFFFF;stroke-width:7.20"/>
+	<rect x="786.78" y="180.00" width="4901.22" height="2747.34" style="fill:#FFFFFF"/>
+	<rect x="790.38" y="183.60" width="4894.02" height="2740.14" style="fill:none;stroke:#FFFFFF;stroke-width:7.20"/>
+	<circle cx="1477.98" cy="1968.12" r="43.02" style="fill:#29B6A4"/>
+	<circle cx="1477.98" cy="1968.12" r="34.92" style="fill:none;stroke:#29B6A4;stroke-width:16.20"/>
+	<text x="1537.92" y="2003.13" style="font-family:'Lucida Sans';font-size:99.90px;fill:#29B6a4">B. Business</text>
+	<circle cx="865.98" cy="2645.10" r="43.02" style="fill:#29B6A4"/>
+	<circle cx="865.98" cy="2645.10" r="34.92" style="fill:none;stroke:#29B6A4;stroke-width:16.20"/>
+	<text x="925.92" y="2680.11" style="font-family:'Lucida Sans';font-size:99.90px;fill:#29B6a4">B. Education</text>
+	<circle cx="3050.82" cy="454.86" r="43.02" style="fill:#29B6A4"/>
+	<circle cx="3050.82" cy="454.86" r="34.92" style="fill:none;stroke:#29B6A4;stroke-width:16.20"/>
+	<text x="3110.76" y="489.87" style="font-family:'Lucida Sans';font-size:99.90px;fill:#29B6a4">B. Health</text>
+	<circle cx="2985.48" cy="1646.28" r="43.02" style="fill:#29B6A4"/>
+	<circle cx="2985.48" cy="1646.28" r="34.92" style="fill:none;stroke:#29B6A4;stroke-width:16.20"/>
+	<text x="3045.42" y="1681.29" style="font-family:'Lucida Sans';font-size:99.90px;fill:#29B6a4">B. Technology</text>
+	<circle cx="2373.48" cy="1384.74" r="43.02" style="fill:#29B6A4"/>
+	<circle cx="2373.48" cy="1384.74" r="34.92" style="fill:none;stroke:#29B6A4;stroke-width:16.20"/>
+	<text x="2433.42" y="1419.75" style="font-family:'Lucida Sans';font-size:99.90px;fill:#29B6a4">M. Business</text>
+	<circle cx="1528.92" cy="1656.00" r="43.02" style="fill:#29B6A4"/>
+	<circle cx="1528.92" cy="1656.00" r="34.92" style="fill:none;stroke:#29B6A4;stroke-width:16.20"/>
+	<text x="1588.86" y="1691.01" style="font-family:'Lucida Sans';font-size:99.90px;fill:#29B6a4">M. Education</text>
+	<circle cx="2754.90" cy="822.60" r="43.02" style="fill:#29B6A4"/>
+	<circle cx="2754.90" cy="822.60" r="34.92" style="fill:none;stroke:#29B6A4;stroke-width:16.20"/>
+	<text x="2814.84" y="857.61" style="font-family:'Lucida Sans';font-size:99.90px;fill:#29B6a4">M. Health</text>
+	<circle cx="4331.88" cy="904.32" r="43.02" style="fill:#29B6A4"/>
+	<circle cx="4331.88" cy="904.32" r="34.92" style="fill:none;stroke:#29B6A4;stroke-width:16.20"/>
+	<text x="4391.82" y="939.33" style="font-family:'Lucida Sans';font-size:99.90px;fill:#29B6a4">M. Technology</text>
+	<path d=" M865.98 2213.64 L2598.84 1346.40 L4331.70 479.16" stroke-linejoin="round" style="fill:none;stroke:#000000;stroke-width:10.80"/>
+	<text x="5404.86" y="2675.97" style="font-family:'Lucida Sans';font-size:99.90px;fill:#404040" text-anchor="end">Correlation = 0.79</text>
+	<text x="5404.86" y="2779.65" style="font-family:'Lucida Sans';font-size:99.90px;fill:#404040" text-anchor="end">Slope = 0.63 (0.20)</text>
+	<line x1="786.78" y1="2927.34" x2="786.78" y2="180.00" style="stroke:#000000;stroke-width:10.80"/>
+	<line x1="786.78" y1="2848.14" x2="736.92" y2="2848.14" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="711.90" y="2894.81" style="font-family:'Lucida Sans';font-size:133.20px;fill:#000000" text-anchor="end">-5000</text>
+	<line x1="786.78" y1="2330.28" x2="736.92" y2="2330.28" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="711.90" y="2376.94" style="font-family:'Lucida Sans';font-size:133.20px;fill:#000000" text-anchor="end">0</text>
+	<line x1="786.78" y1="1812.60" x2="736.92" y2="1812.60" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="711.90" y="1859.27" style="font-family:'Lucida Sans';font-size:133.20px;fill:#000000" text-anchor="end">5000</text>
+	<line x1="786.78" y1="1294.74" x2="736.92" y2="1294.74" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="711.90" y="1341.40" style="font-family:'Lucida Sans';font-size:133.20px;fill:#000000" text-anchor="end">10000</text>
+	<line x1="786.78" y1="777.06" x2="736.92" y2="777.06" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="711.90" y="823.72" style="font-family:'Lucida Sans';font-size:133.20px;fill:#000000" text-anchor="end">15000</text>
+	<line x1="786.78" y1="259.20" x2="736.92" y2="259.20" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="711.90" y="305.86" style="font-family:'Lucida Sans';font-size:133.20px;fill:#000000" text-anchor="end">20000</text>
+	<text x="193.19" y="1553.58" style="font-family:'Lucida Sans';font-size:137.52px;fill:#000000" transform="rotate(-90 193.19,1553.58)" text-anchor="middle">Enrollment Year Placebo Test ($)</text>
+	<line x1="786.78" y1="2927.34" x2="5688.00" y2="2927.34" style="stroke:#000000;stroke-width:10.80"/>
+	<line x1="917.10" y1="2927.34" x2="917.10" y2="2977.38" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="917.10" y="3095.37" style="font-family:'Lucida Sans';font-size:133.20px;fill:#000000" text-anchor="middle">0</text>
+	<line x1="1936.98" y1="2927.34" x2="1936.98" y2="2977.38" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="1936.98" y="3095.37" style="font-family:'Lucida Sans';font-size:133.20px;fill:#000000" text-anchor="middle">5000</text>
+	<line x1="2956.86" y1="2927.34" x2="2956.86" y2="2977.38" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="2956.86" y="3095.37" style="font-family:'Lucida Sans';font-size:133.20px;fill:#000000" text-anchor="middle">10000</text>
+	<line x1="3976.92" y1="2927.34" x2="3976.92" y2="2977.38" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="3976.92" y="3095.37" style="font-family:'Lucida Sans';font-size:133.20px;fill:#000000" text-anchor="middle">15000</text>
+	<line x1="4996.80" y1="2927.34" x2="4996.80" y2="2977.38" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="4996.80" y="3095.37" style="font-family:'Lucida Sans';font-size:133.20px;fill:#000000" text-anchor="middle">20000</text>
+	<text x="3237.48" y="3281.63" style="font-family:'Lucida Sans';font-size:137.52px;fill:#000000" text-anchor="middle">Withdrawal Treatment Effect on 5-Year Wages ($)</text>
+</svg>

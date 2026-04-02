@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- This is a Stata 19.5 generated SVG file (http://www.stata.com) -->
+
+<svg version="1.1" width="8.000in" height="5.000in" viewBox="0 0 5760 3600" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<desc>Stata Graph - Graph</desc>
+	<rect x="0" y="0" width="5760" height="3600" style="fill:#FFFFFF;stroke:none"/>
+	<rect x="0.00" y="0.00" width="5760.00" height="3600.00" style="fill:#FFFFFF"/>
+	<rect x="3.60" y="3.60" width="5752.80" height="3592.80" style="fill:none;stroke:#FFFFFF;stroke-width:7.20"/>
+	<rect x="859.50" y="252.00" width="4828.50" height="2427.84" style="fill:#FFFFFF"/>
+	<rect x="863.10" y="255.60" width="4821.30" height="2420.64" style="fill:none;stroke:#FFFFFF;stroke-width:7.20"/>
+	<rect x="1395.00" y="1844.28" width="1552.86" height="55.98" style="fill:#54C5B6"/>
+	<rect x="1398.60" y="1847.88" width="1545.66" height="48.78" style="fill:none;stroke:#29B6A4;stroke-width:7.20"/>
+	<rect x="1395.00" y="2124.36" width="3254.58" height="56.16" style="fill:#54C5B6"/>
+	<rect x="1398.60" y="2127.96" width="3247.38" height="48.96" style="fill:none;stroke:#29B6A4;stroke-width:7.20"/>
+	<rect x="1395.00" y="2404.62" width="1139.58" height="55.98" style="fill:#54C5B6"/>
+	<rect x="1398.60" y="2408.22" width="1132.38" height="48.78" style="fill:none;stroke:#29B6A4;stroke-width:7.20"/>
+	<rect x="1395.00" y="1564.02" width="1157.76" height="55.98" style="fill:#54C5B6"/>
+	<rect x="1398.60" y="1567.62" width="1150.56" height="48.78" style="fill:none;stroke:#29B6A4;stroke-width:7.20"/>
+	<rect x="1395.00" y="653.40" width="1055.52" height="55.98" style="fill:#54C5B6"/>
+	<rect x="1398.60" y="657.00" width="1048.32" height="48.78" style="fill:none;stroke:#29B6A4;stroke-width:7.20"/>
+	<rect x="1395.00" y="933.66" width="2402.28" height="55.98" style="fill:#54C5B6"/>
+	<rect x="1398.60" y="937.26" width="2395.08" height="48.78" style="fill:none;stroke:#29B6A4;stroke-width:7.20"/>
+	<rect x="1395.00" y="1283.76" width="1559.16" height="56.16" style="fill:#54C5B6"/>
+	<rect x="1398.60" y="1287.36" width="1551.96" height="48.96" style="fill:none;stroke:#29B6A4;stroke-width:7.20"/>
+	<rect x="1395.00" y="373.14" width="1490.76" height="56.16" style="fill:#54C5B6"/>
+	<rect x="1398.60" y="376.74" width="1483.56" height="48.96" style="fill:none;stroke:#29B6A4;stroke-width:7.20"/>
+	<text x="2995.38" y="1898.50" style="font-family:'Lucida Sans';font-size:75.06px;fill:#404040">$17K</text>
+	<text x="4697.10" y="2178.76" style="font-family:'Lucida Sans';font-size:75.06px;fill:#404040">$36K</text>
+	<text x="2582.10" y="2458.84" style="font-family:'Lucida Sans';font-size:75.06px;fill:#404040">$12K</text>
+	<text x="2600.28" y="1618.42" style="font-family:'Lucida Sans';font-size:75.06px;fill:#404040">$13K</text>
+	<text x="2498.04" y="707.80" style="font-family:'Lucida Sans';font-size:75.06px;fill:#404040">$12K</text>
+	<text x="3844.80" y="987.88" style="font-family:'Lucida Sans';font-size:75.06px;fill:#404040">$26K</text>
+	<text x="3001.68" y="1338.16" style="font-family:'Lucida Sans';font-size:75.06px;fill:#404040">$17K</text>
+	<text x="2933.28" y="427.54" style="font-family:'Lucida Sans';font-size:75.06px;fill:#404040">$16K</text>
+	<line x1="859.50" y1="2679.84" x2="859.50" y2="252.00" style="stroke:#000000;stroke-width:10.80"/>
+	<line x1="859.50" y1="471.24" x2="809.46" y2="471.24" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="784.44" y="506.25" style="font-family:'Lucida Sans';font-size:99.90px;fill:#000000" text-anchor="end">B. Education</text>
+	<line x1="859.50" y1="751.50" x2="809.46" y2="751.50" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="784.44" y="786.51" style="font-family:'Lucida Sans';font-size:99.90px;fill:#000000" text-anchor="end">B. Business</text>
+	<line x1="859.50" y1="1031.58" x2="809.46" y2="1031.58" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="784.44" y="1066.59" style="font-family:'Lucida Sans';font-size:99.90px;fill:#000000" text-anchor="end">B. Technology</text>
+	<line x1="859.50" y1="1311.84" x2="809.46" y2="1311.84" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="784.44" y="1346.85" style="font-family:'Lucida Sans';font-size:99.90px;fill:#000000" text-anchor="end">B. Health</text>
+	<line x1="859.50" y1="1592.10" x2="809.46" y2="1592.10" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="784.44" y="1627.11" style="font-family:'Lucida Sans';font-size:99.90px;fill:#000000" text-anchor="end">M. Education</text>
+	<line x1="859.50" y1="1872.18" x2="809.46" y2="1872.18" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="784.44" y="1907.19" style="font-family:'Lucida Sans';font-size:99.90px;fill:#000000" text-anchor="end">M. Business</text>
+	<line x1="859.50" y1="2152.44" x2="809.46" y2="2152.44" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="784.44" y="2187.45" style="font-family:'Lucida Sans';font-size:99.90px;fill:#000000" text-anchor="end">M. Technology</text>
+	<line x1="859.50" y1="2432.52" x2="809.46" y2="2432.52" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="784.44" y="2467.53" style="font-family:'Lucida Sans';font-size:99.90px;fill:#000000" text-anchor="end">M. Health</text>
+	<line x1="859.50" y1="2679.84" x2="5688.00" y2="2679.84" style="stroke:#000000;stroke-width:10.80"/>
+	<line x1="938.70" y1="2679.84" x2="938.70" y2="2729.88" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="938.70" y="2848.05" style="font-family:'Lucida Sans';font-size:133.20px;fill:#000000" text-anchor="middle">-5000</text>
+	<line x1="1851.12" y1="2679.84" x2="1851.12" y2="2729.88" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="1851.12" y="2848.05" style="font-family:'Lucida Sans';font-size:133.20px;fill:#000000" text-anchor="middle">5000</text>
+	<line x1="2763.54" y1="2679.84" x2="2763.54" y2="2729.88" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="2763.54" y="2848.05" style="font-family:'Lucida Sans';font-size:133.20px;fill:#000000" text-anchor="middle">15000</text>
+	<line x1="3675.96" y1="2679.84" x2="3675.96" y2="2729.88" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="3675.96" y="2848.05" style="font-family:'Lucida Sans';font-size:133.20px;fill:#000000" text-anchor="middle">25000</text>
+	<line x1="4588.38" y1="2679.84" x2="4588.38" y2="2729.88" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="4588.38" y="2848.05" style="font-family:'Lucida Sans';font-size:133.20px;fill:#000000" text-anchor="middle">35000</text>
+	<line x1="5500.80" y1="2679.84" x2="5500.80" y2="2729.88" style="stroke:#000000;stroke-width:10.80"/>
+	<text x="5500.80" y="2848.05" style="font-family:'Lucida Sans';font-size:133.20px;fill:#000000" text-anchor="middle">45000</text>
+	<text x="3273.84" y="3034.31" style="font-family:'Lucida Sans';font-size:137.52px;fill:#000000" text-anchor="middle">Impact on Wages ($)</text>
+	<rect x="902.70" y="3143.88" width="4742.10" height="232.92" style="fill:#FFFFFF"/>
+	<rect x="906.30" y="3147.48" width="4734.90" height="225.72" style="fill:none;stroke:#FFFFFF;stroke-opacity:0.00;stroke-width:7.20"/>
+	<rect x="956.70" y="3197.88" width="432.36" height="124.92" style="fill:#54C5B6"/>
+	<rect x="960.30" y="3201.48" width="425.16" height="117.72" style="fill:none;stroke:#29B6A4;stroke-width:7.20"/>
+	<rect x="2182.50" y="3197.88" width="432.36" height="124.92" style="fill:#999999"/>
+	<rect x="2186.10" y="3201.48" width="425.16" height="117.72" style="fill:none;stroke:#808080;stroke-width:7.20"/>
+	<rect x="3499.38" y="3197.88" width="432.36" height="124.92" style="fill:#FBB74F"/>
+	<rect x="3502.98" y="3201.48" width="425.16" height="117.72" style="fill:none;stroke:#FAA523;stroke-width:7.20"/>
+	<text x="1458.36" y="3304.11" style="font-family:'Lucida Sans';font-size:124.92px;fill:#000000">Graduates</text>
+	<text x="2684.16" y="3304.11" style="font-family:'Lucida Sans';font-size:124.92px;fill:#000000">Withdrawals</text>
+	<text x="4001.04" y="3304.11" style="font-family:'Lucida Sans';font-size:124.92px;fill:#000000">Enrollment Year Placebo Test</text>
+</svg>
