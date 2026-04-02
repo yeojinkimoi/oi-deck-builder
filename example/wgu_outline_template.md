@@ -137,44 +137,8 @@ Use this template to define your slide deck. Give this outline + your figure dir
 
 ### TEXT: Next Steps and Discussion
 1. Find matched control vector that eliminates selection problem in certain programs (e.g., healthcare)
+
 2. Validate alternative estimators against quasi-experimental designs where variation in WGU enrollment is not driven by individual selection
   - Rollout of WGU programs in certain states/firms (small)
   - Eligibility cutoffs, targeting, or ads to certain subgroups/areas (small)
 
----
-
-## Outline Format Reference
-
-### Slide types
-
-| Type | Format |
-|------|--------|
-| `1-FIGURE` | Single figure, centered |
-| `2-FIGURE` | Two panels side-by-side: **Left** and **Right** |
-| `3-FIGURE` | One centered on top, two on bottom: **Top center**, **Bottom left**, **Bottom right** |
-| `4-FIGURE` | 2x2 grid: **Top left**, **Top right**, **Bottom left**, **Bottom right** |
-| `TEXT` | Bulleted text slide |
-| `TABLE` | Table with column headers and rows |
-
-### Figure entries
-
-```
-- **Left**: figure_filename_without_extension | Panel Title
-```
-
-The figure name is the filename (no extension). The `|` separator is optional — text after it becomes the panel title above that figure.
-
-### Text entries
-
-- Top-level bullets: `- Main point`
-- Sub-bullets: `  - Sub point`
-- Add `(small)` at end for smaller font (18pt)
-- Use `1.` / `2.` for numbered lists
-
-### Deck settings
-
-All fields under "Deck Settings" are optional. Defaults:
-- **Figure directory**: `./figures`
-- **Output**: `./deck.pptx`
-- **Date**: (none)
-- **Notice**: (none)

@@ -48,12 +48,23 @@ const theme = {
 
   // Figure placement boxes (inches)
   figBox: {
-    // Single figure: 10.63" wide, centered horizontally
-    SINGLE:     { x: 1.35, y: 1.25, w: 10.63, h: 5.82 },
+    // Single figure: full width, centered horizontally
+    SINGLE:     { x: 0.05, y: 1.30, w: 13.23, h: 6.27 },
     // 2-panel: full width, pulled down for breathing room after title
     TWO_PANEL:  { x: 0.05, y: 2.05, w: 13.23, h: 5.02 },
-    // 4-panel: full width, tight to title
-    FOUR_PANEL: { x: 0.05, y: 1.25, w: 13.23, h: 5.82 },
+    // 4-panel: full width, slight breathing room after title
+    FOUR_PANEL: { x: 0.05, y: 1.55, w: 13.23, h: 5.82 },
+  },
+
+  // Table styles
+  table: {
+    header:     { fontFace: "Lucida Sans", fontSize: 16, bold: true, color: "FFFFFF", fill: { color: "29B6A4" }, align: "center", valign: "middle" },
+    cell:       { fontFace: "Lucida Sans", fontSize: 16, color: "262626", align: "center", valign: "middle" },
+    altRow:     { fill: { color: "F2F2F2" } },
+    groupLabel: { fontFace: "Lucida Sans", fontSize: 20, bold: true, color: "262626", align: "center", valign: "middle" },
+    border:     { type: "solid", pt: 0.5, color: "D9D9D9" },
+    position:   { x: 0.6713, y: 1.50, w: 12.2687 },
+    rowH:       0.55,
   },
 
   // Title bar positioning
@@ -296,32 +307,54 @@ class OIDeckBuilder {
   // ── High-level slide builders ────────────────────────────────────────────
 
   /**
-   * Title slide with configurable text lines.
+   * Title slide.
    *
-   * @param {object} opts
-   * @param {Array<{text: string, options?: object}>} opts.textItems - Text items for the title area
-   * @param {object} [opts.textBox] - Position/size override: {x, y, w, h}
+   * Simple form: pass strings for title, subtitle, date, notice.
+   * Advanced form: pass opts.textItems array for full control.
+   *
+   * @param {string|object} titleOrOpts - Title string, or opts object
+   * @param {string} [subtitle]
+   * @param {string} [date]
+   * @param {string} [notice]
    */
-  addTitleSlide(opts = {}) {
+  addTitleSlide(titleOrOpts, subtitle, date, notice) {
     const slide = this.pptx.addSlide();
+    const textBox = { x: 0.53, y: 2.25, w: 12.12, h: 2.15 };
 
-    const textItems = opts.textItems || [];
-    const textBox = opts.textBox || { x: 0.53, y: 2.25, w: 12.12, h: 2.15 };
+    let textItems;
 
-    // Apply default styling to text items
-    const styledItems = textItems.map((item) => ({
-      text: item.text,
-      options: {
-        fontFace: F.TITLE,
-        fontSize: 24,
-        bold: false,
-        color: C.DARK_TEXT,
-        breakLine: true,
-        ...item.options,
-      },
-    }));
+    if (typeof titleOrOpts === "object" && titleOrOpts.textItems) {
+      // Advanced: raw textItems with default styling
+      textItems = titleOrOpts.textItems.map((item) => ({
+        text: item.text,
+        options: {
+          fontFace: F.TITLE, fontSize: 24, bold: false,
+          color: C.DARK_TEXT, breakLine: true,
+          ...item.options,
+        },
+      }));
+    } else {
+      // Simple: build from strings
+      const t = typeof titleOrOpts === "string" ? titleOrOpts : "";
+      textItems = [
+        { text: t, options: { fontFace: F.TITLE, fontSize: 32, bold: true, color: C.DARK_TEXT, breakLine: true } },
+      ];
+      if (subtitle) {
+        textItems.push({ text: subtitle, options: { fontFace: F.TITLE, fontSize: 24, bold: false, color: C.DARK_TEXT, breakLine: true } });
+      }
+      if (date || notice) {
+        textItems.push({ text: "", options: { fontSize: 12, breakLine: true } });
+        textItems.push({ text: "", options: { fontSize: 12, breakLine: true } });
+      }
+      if (date) {
+        textItems.push({ text: date, options: { fontFace: F.LABEL, fontSize: 12, bold: true, color: C.DARK_TEXT, breakLine: true } });
+      }
+      if (notice) {
+        textItems.push({ text: notice, options: { fontFace: F.LABEL, fontSize: 12, bold: true, color: C.DARK_TEXT } });
+      }
+    }
 
-    slide.addText(styledItems, {
+    slide.addText(textItems, {
       x: textBox.x, y: textBox.y, w: textBox.w, h: textBox.h,
       align: "right", valign: "top",
     });
@@ -528,6 +561,104 @@ class OIDeckBuilder {
   }
 
   /**
+   * 3-figure slide: 1 centered on top row, 2 on bottom row.
+   *
+   * @param {string} title
+   * @param {string} subtitle
+   * @param {string[]} figPaths - [topCenter, bottomLeft, bottomRight]
+   * @param {string[]} panelTitles - [topTitle, bottomLeftTitle, bottomRightTitle]
+   * @param {object} [opts]
+   * @param {object} [opts.fig_box] - Override figure box
+   * @param {number} [opts.gap] - Horizontal gap (default: 0.00)
+   * @param {number} [opts.vgap] - Vertical gap (default: 0.00)
+   */
+  add3FigureSlide(title, subtitle, figPaths, panelTitles, opts = {}) {
+    const slide = this.pptx.addSlide();
+    this.addTitleBar(slide, title, subtitle);
+
+    const box = opts.fig_box || theme.figBox.FOUR_PANEL;
+    const gap = opts.gap ?? 0.00;
+    const vgap = opts.vgap ?? 0.00;
+    const PANEL_TITLE_H = 0.22;
+    const titleFontSize = opts.titleFontSize ?? 14;
+    const cols = 2, rows = 2;
+
+    const availH = box.h - 2 * PANEL_TITLE_H;
+    const cellW = (box.w - gap * (cols - 1)) / cols;
+    const cellH = (availH - vgap * (rows - 1)) / rows;
+
+    // Resolve all 3 images
+    const imgs = figPaths.map((fp) => {
+      const resolved = this.resolveFigure(fp);
+      if (resolved && fs.existsSync(resolved)) {
+        const { width, height } = getPngSize(resolved);
+        const imgAspect = width / height;
+        const cellAspect = cellW / cellH;
+        const renderedH = imgAspect >= cellAspect ? cellW / imgAspect : cellH;
+        return { path: resolved, aspect: imgAspect, renderedH };
+      }
+      return null;
+    });
+
+    const row0H = imgs[0] ? imgs[0].renderedH : cellH;
+    const row1H = Math.max(imgs[1] ? imgs[1].renderedH : cellH, imgs[2] ? imgs[2].renderedH : cellH);
+
+    const gridH = PANEL_TITLE_H + row0H + vgap + PANEL_TITLE_H + row1H;
+    const gridW = cols * cellW + gap * (cols - 1);
+    const gridX0 = box.x + (box.w - gridW) / 2;
+    const gridY0 = box.y;
+
+    const titles = panelTitles || ["", "", ""];
+
+    // Top row: 1 centered panel
+    {
+      const cx = gridX0 + (gridW - cellW) / 2;
+      const titleY = gridY0;
+      const imgY = gridY0 + PANEL_TITLE_H;
+
+      if (titles[0]) {
+        slide.addText(titles[0], {
+          x: cx, y: titleY, w: cellW, h: PANEL_TITLE_H,
+          fontFace: F.LABEL, fontSize: titleFontSize, bold: true, color: C.DARK_TEXT,
+          align: "center", valign: "bottom",
+        });
+      }
+
+      if (imgs[0]) {
+        const cellBox = { x: cx, y: imgY, w: cellW, h: row0H };
+        const p = containInBox(cellBox, imgs[0].aspect, "top");
+        slide.addImage({ path: imgs[0].path, x: p.x, y: p.y, w: p.w, h: p.h });
+      }
+    }
+
+    // Bottom row: 2 panels
+    const botTitleY = gridY0 + PANEL_TITLE_H + row0H + vgap;
+    const botImgY = botTitleY + PANEL_TITLE_H;
+
+    for (let c = 0; c < 2; c++) {
+      const cx = gridX0 + c * (cellW + gap);
+      const img = imgs[c + 1];
+
+      if (titles[c + 1]) {
+        slide.addText(titles[c + 1], {
+          x: cx, y: botTitleY, w: cellW, h: PANEL_TITLE_H,
+          fontFace: F.LABEL, fontSize: titleFontSize, bold: true, color: C.DARK_TEXT,
+          align: "center", valign: "bottom",
+        });
+      }
+
+      if (img) {
+        const cellBox = { x: cx, y: botImgY, w: cellW, h: row1H };
+        const p = containInBox(cellBox, img.aspect, "top");
+        slide.addImage({ path: img.path, x: p.x, y: p.y, w: p.w, h: p.h });
+      }
+    }
+
+    this.addLogo(slide);
+    return slide;
+  }
+
+  /**
    * Text slide with title bar + bullet points.
    *
    * Each bullet can be a string (default 22pt) or [text, fontSize, color, bold].
@@ -556,10 +687,11 @@ class OIDeckBuilder {
       const boxH = Math.max(0.30, (fontSize / 72) * 1.4 * (text.length > 80 ? 2 : 1));
       if (i > 0) cursorY += SPACE_BEFORE;
 
-      slide.addText(text, {
+      slide.addText([
+        { text: "\u2022 ", options: { fontFace: F.BODY, fontSize, color: C.OI_GREEN, bold: false } },
+        { text, options: { fontFace: F.BODY, fontSize, color, bold } },
+      ], {
         x, y: cursorY, w, h: boxH,
-        fontFace: F.BODY, fontSize, color, bold,
-        bullet: { color: C.OI_GREEN },
         align: "left", valign: "top",
       });
 
@@ -571,26 +703,128 @@ class OIDeckBuilder {
   }
 
   /**
-   * Rich text slide: title bar + a single addText call with full PptxGenJS text items.
-   * Use this for slides with bullets, indentation, mixed formatting.
+   * Rich text slide: title bar + bulleted text with OI styling applied automatically.
+   *
+   * Accepts either:
+   *   (a) Simple format: array of strings or [text, indentLevel] pairs.
+   *       Strings become 22pt bullets. Use "  - sub point" or [text, 1] for sub-bullets (18pt).
+   *       Append " (small)" to force 18pt. Use "" for blank spacer lines.
+   *       Prefix with "1. " / "2. " for numbered items.
+   *   (b) Full PptxGenJS text items [{text, options}, ...] — OI defaults applied to any
+   *       missing bullet color, fontSize, or text color.
    *
    * @param {string} title
-   * @param {Array} textItems - PptxGenJS text item array [{text, options}, ...]
+   * @param {Array} textItems
    * @param {object} [opts]
    * @param {string} [opts.subtitle]
-   * @param {object} [opts.textBox] - Override {x, y, w, h} for the text area
+   * @param {object} [opts.textBox] - Override {x, y, w, h}
    */
   addRichTextSlide(title, textItems, opts = {}) {
     const slide = this.pptx.addSlide();
     this.addTitleBar(slide, title, opts.subtitle);
 
-    // Default bullet/number color to OI green when not explicitly set
-    const styledItems = textItems.map((item) => {
-      if (item.options && item.options.bullet && !item.options.bullet.color) {
-        return { ...item, options: { ...item.options, bullet: { ...item.options.bullet, color: C.OI_GREEN } } };
+    // Auto-style items — use colored text-run prefixes for bullets/numbers
+    // since pptxgenjs does not support bullet.color
+    let numberCounter = 0;
+    const styledItems = [];
+    for (const item of textItems) {
+      // Simple string or [text, indent] format
+      if (typeof item === "string" || Array.isArray(item)) {
+        let text, indent;
+        if (Array.isArray(item)) {
+          [text, indent] = item;
+        } else {
+          text = item;
+          indent = 0;
+        }
+
+        // Blank spacer
+        if (text === "") {
+          numberCounter = 0;
+          styledItems.push({ text: "", options: { fontSize: 18, breakLine: true } });
+          continue;
+        }
+
+        // Detect indent from leading whitespace or "  - " prefix
+        if (text.startsWith("  - ") || text.startsWith("    -")) {
+          text = text.replace(/^\s*-\s*/, "");
+          indent = 1;
+        }
+
+        // Detect (small) suffix
+        let fontSize = indent > 0 ? 18 : 22;
+        if (text.endsWith("(small)")) {
+          text = text.replace(/\s*\(small\)\s*$/, "");
+          fontSize = 18;
+        }
+
+        // Detect numbered prefix "1. ", "2. "
+        const numMatch = text.match(/^(\d+)\.\s+/);
+        let prefix;
+        if (numMatch) {
+          numberCounter = parseInt(numMatch[1], 10);
+          text = text.replace(/^\d+\.\s+/, "");
+          prefix = `${numberCounter}. `;
+          numberCounter++;
+        } else {
+          prefix = indent > 0 ? "\u2013 " : "\u2022 ";
+        }
+
+        // Use invisible bullet (zero-width space) to get indentLevel margins from pptxgenjs
+        // Paragraph-level props (paraSpace, indent) go on the first run of the paragraph
+        const bulletShim = { characterCode: "200B" };
+        const paraSpaceBefore = 0;
+        const paraSpaceAfter = indent > 0 ? 4 : 14;
+        styledItems.push(
+          { text: prefix, options: { fontSize, color: C.OI_GREEN, bold: false, bullet: bulletShim, indentLevel: indent || 0, paraSpaceBefore, paraSpaceAfter } },
+          { text, options: {
+            fontSize,
+            color: C.DARK_TEXT,
+            breakLine: true,
+          }},
+        );
+        continue;
       }
-      return item;
-    });
+
+      // Full {text, options} format — apply OI defaults
+      const o = item.options || {};
+      const indent = o.indentLevel || 0;
+      const fontSize = o.fontSize || 22;
+
+      // Determine prefix
+      let prefix;
+      if (o.bullet && o.bullet.type === "number") {
+        numberCounter++;
+        prefix = `${numberCounter}. `;
+      } else {
+        prefix = indent > 0 ? "\u2013 " : "\u2022 ";
+      }
+
+      // Strip bullet from options (we handle it as text prefix now)
+      // Use invisible bullet (zero-width space) to get indentLevel margins
+      const { bullet, ...restOpts } = o;
+      const bulletShim = { characterCode: "200B" };
+      const options = {
+        fontSize,
+        color: C.DARK_TEXT,
+        breakLine: true,
+        paraSpaceBefore: 0,
+        paraSpaceAfter: indent > 0 ? 4 : 14,
+        ...restOpts,
+      };
+      // Remove bullet from restOpts if it leaked through
+      delete options.bullet;
+
+      if (item.text) {
+        styledItems.push(
+          { text: prefix, options: { fontSize, color: C.OI_GREEN, bold: false, bullet: bulletShim, indentLevel: indent, paraSpaceBefore: options.paraSpaceBefore, paraSpaceAfter: options.paraSpaceAfter } },
+          { text: item.text, options },
+        );
+      } else {
+        numberCounter = 0;
+        styledItems.push({ text: "", options });
+      }
+    }
 
     const textBox = opts.textBox || { x: 0.6713, y: 1.46, w: 12.2718, h: 4.75 };
     slide.addText(styledItems, {
@@ -603,24 +837,56 @@ class OIDeckBuilder {
   }
 
   /**
-   * Table slide: title bar + a table.
+   * Table slide: title bar + a styled table.
+   *
+   * Accepts either:
+   *   (a) Pre-styled PptxGenJS rows (array of arrays of {text, options} objects)
+   *   (b) Simple string arrays — first row becomes header, rest auto-styled with alternating rows
    *
    * @param {string} title
-   * @param {Array} tableRows - PptxGenJS table rows
-   * @param {object} tableOpts - PptxGenJS table options (x, y, w, colW, rowH, border, etc.)
+   * @param {Array} tableRows - Table rows: string[][] for auto-styling, or pre-styled PptxGenJS rows
+   * @param {object} [tableOpts] - PptxGenJS table options override (x, y, w, colW, rowH, border, etc.)
    * @param {object} [opts]
    * @param {string} [opts.subtitle]
    * @param {string} [opts.footnote] - Text below the table
    */
-  addTableSlide(title, tableRows, tableOpts, opts = {}) {
+  addTableSlide(title, tableRows, tableOpts = {}, opts = {}) {
     const slide = this.pptx.addSlide();
     this.addTitleBar(slide, title, opts.subtitle);
 
-    slide.addTable(tableRows, tableOpts);
+    const ts = theme.table;
+
+    // Auto-style simple string rows
+    let styledRows = tableRows;
+    if (tableRows.length > 0 && typeof tableRows[0][0] === "string") {
+      styledRows = tableRows.map((row, rowIdx) => {
+        const isHeader = rowIdx === 0;
+        const isAlt = !isHeader && rowIdx % 2 === 0;
+        return row.map((cellText) => ({
+          text: cellText,
+          options: isHeader
+            ? { ...ts.header }
+            : isAlt
+              ? { ...ts.cell, ...ts.altRow }
+              : { ...ts.cell },
+        }));
+      });
+    }
+
+    const pos = ts.position;
+    const mergedOpts = {
+      x: pos.x, y: pos.y, w: pos.w,
+      rowH: ts.rowH,
+      border: ts.border,
+      autoPage: false,
+      ...tableOpts,
+    };
+
+    slide.addTable(styledRows, mergedOpts);
 
     if (opts.footnote) {
       slide.addText(opts.footnote, {
-        x: 0.6713, y: 6.7137, w: 12.2687, h: 0.35,
+        x: pos.x, y: 6.7137, w: pos.w, h: 0.35,
         fontFace: F.LABEL, fontSize: 14, color: C.DARK_TEXT,
         align: "left", valign: "top",
       });
