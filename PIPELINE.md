@@ -129,6 +129,39 @@ copied from the slide above and never updated.
 Missing figures fail the build. Pass `--draft` to skip those slides and get a
 report instead.
 
+## Title formats
+
+Numbered conventions, chosen once in Deck Settings, so a per-program deck does
+not retype the same sentence on every slide:
+
+```markdown
+- **Program**: TSTC
+- **Title format**: 1
+- **Figure title format**: 2
+```
+
+| | renders |
+|---|---|
+| **1** front slide | `The Impacts of TSTC Programs on Earnings` / `Preliminary Estimates Using Digital Twins` |
+| **2** figure slide | `Impact of TSTC on Earnings: {Panel}` / `TSTC Enrollees who {Cohort} vs. Digital Twins -- {{fact}} Increase` |
+
+A figure slide then supplies only what varies:
+
+```markdown
+### Slide 3 — 1-FIGURE:
+- **Panel**: Construction Certificate
+- **Figure**: cert_construction_graduate_event_study
+```
+
+`Cohort` defaults to `Graduate`; override it per slide (`- **Cohort**: Leave`).
+The fact key is derived from the figure name — `cert_construction_graduate_event_study`
+becomes `te_yr5.cert_construction_graduate` — so the number on the slide is
+still read, never typed. `- **Fact**: none` omits it.
+
+Overridable defaults: `Comparison` (Digital Twins), `Effect word` (Increase),
+`Effect fact` (te_yr5). An explicit `Title:` or `Subtitle:` always wins, so a
+one-off slide just writes them out.
+
 ## Facts: no number typed twice
 
 Stata records every number a slide will quote, next to the code that computed

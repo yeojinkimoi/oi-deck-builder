@@ -156,6 +156,106 @@ function interpolate(str, facts, line) {
   });
 }
 
+// ------------------------------------------------------------ title formats
+
+/**
+ * Named title conventions, chosen in Deck Settings:
+ *
+ *     - **Program**: TSTC
+ *     - **Title format**: 1
+ *     - **Figure title format**: 2
+ *
+ * FORMAT 1 — the front / title slide
+ *     The Impacts of {Program} Programs on Earnings
+ *     Preliminary Estimates Using {Comparison}
+ *
+ * FORMAT 2 — one figure per program/panel
+ *     Impact of {Program} on Earnings: {Panel}
+ *     {Program} Enrollees who {Cohort} vs. {Comparison} -- {{fact}} {Effect word}
+ *
+ * A slide supplies only what varies:
+ *
+ *     ### Slide 3 — 1-FIGURE:
+ *     - **Figure**: cert_construction_graduate_event_study
+ *     - **Panel**: Construction Certificate
+ *
+ * Cohort defaults to "Graduate"; the fact key is derived from the figure name
+ * (basename minus _event_study, prefixed with the Effect fact setting). An
+ * explicit Title or Subtitle always wins, so any slide can opt out.
+ */
+const TITLE_FORMATS = {
+  1: {
+    title: (s) => `The Impacts of ${s.program} Programs on Earnings`,
+    subtitle: (s) => `Preliminary Estimates Using ${s.comparison}`,
+  },
+};
+
+const FIGURE_TITLE_FORMATS = {
+  2: {
+    title: (s, f) => `Impact of ${s.program} on Earnings: ${f.panel}`,
+    subtitle: (s, f) =>
+      `${s.program} Enrollees who ${f.cohort} vs. ${s.comparison}` +
+      (f.fact ? ` -- {{${f.fact}}} ${s.effectWord}` : ""),
+  },
+};
+
+function applyTitleFormats(model) {
+  const S = model.settings;
+  const ctx = {
+    program: S.program || "",
+    comparison: S.comparison || "Digital Twins",
+    effectWord: S["effect word"] || "Increase",
+  };
+  const factPrefix = S["effect fact"] || "te_yr5";
+
+  // ---- format 1: the front slide
+  const tf = S["title format"];
+  if (tf) {
+    const fmt = TITLE_FORMATS[tf];
+    if (!fmt) { err(0, `Title format ${tf} is not defined (have: ${Object.keys(TITLE_FORMATS).join(", ")})`); }
+    else {
+      if (!ctx.program) err(0, "Title format needs a **Program** setting");
+      if (!S.title) S.title = fmt.title(ctx);
+      if (!S.subtitle) S.subtitle = fmt.subtitle(ctx);
+    }
+  }
+
+  // ---- format 2: per-program figure slides
+  const ff = S["figure title format"];
+  if (!ff) return;
+  const fmt = FIGURE_TITLE_FORMATS[ff];
+  if (!fmt) {
+    err(0, `Figure title format ${ff} is not defined (have: ${Object.keys(FIGURE_TITLE_FORMATS).join(", ")})`);
+    return;
+  }
+  if (!ctx.program) err(0, "Figure title format needs a **Program** setting");
+
+  for (const sl of model.slides) {
+    if (!/FIGURE/.test(sl.type)) continue;
+    const hasTitle = sl.title && sl.title.trim();
+    const hasSub = sl.fields.subtitle && sl.fields.subtitle.trim();
+    if (hasTitle && hasSub) continue; // fully hand-written, leave alone
+
+    const panel = sl.fields.panel;
+    if (!panel) {
+      if (!hasTitle) err(sl.line, `figure title format ${ff} needs a **Panel** on this slide, or a title in the heading`);
+      continue;
+    }
+
+    // derive the fact key from the figure name unless given one
+    let fact = sl.fields.fact;
+    if (fact === undefined) {
+      const figName = splitFig(sl.fields.figure || sl.fields.left || "").name;
+      if (figName) fact = `${factPrefix}.${figName.replace(/_event_study$/, "")}`;
+    }
+    if (fact === "none" || fact === "") fact = null;
+
+    const f = { panel, cohort: sl.fields.cohort || "Graduate", fact };
+    if (!hasTitle) sl.title = fmt.title(ctx, f);
+    if (!hasSub) sl.fields.subtitle = fmt.subtitle(ctx, f);
+  }
+}
+
 // ------------------------------------------------------------------ figures
 
 function figExists(figDir, name) {
@@ -360,6 +460,9 @@ function main() {
   const deckDir = path.dirname(outlinePath);
 
   const model = parseOutline(fs.readFileSync(outlinePath, "utf8"));
+  // Expand the named title conventions before facts are interpolated,
+  // because format 2 produces {{fact}} placeholders of its own.
+  applyTitleFormats(model);
   const figDir = path.resolve(
     deckDir,
     arg("--fig-dir", model.settings["figure directory"] || "figures")
@@ -383,8 +486,14 @@ function main() {
   // ---- validate figures referenced actually exist
   for (const s of model.slides) {
     if (!/FIGURE/.test(s.type)) continue;
+    // Allowlist, not denylist: only these fields ever name a figure, so adding
+    // a new metadata field (panel, cohort, fact, ...) cannot be misread as one.
+    const FIG_FIELDS = new Set([
+      "figure", "left", "right", "top", "top center",
+      "top left", "top right", "bottom left", "bottom right",
+    ]);
     for (const [k, v] of Object.entries(s.fields)) {
-      if (["subtitle", "notes", "footnote"].includes(k)) continue;
+      if (!FIG_FIELDS.has(k)) continue;
       const { name } = splitFig(v);
       if (name && !figExists(figDir, name)) {
         const near = fs.existsSync(figDir)
