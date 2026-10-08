@@ -69,11 +69,17 @@ function scaffold(cwd, name) {
     fs.mkdirSync(path.join(cwd, sub), { recursive: true });
   }
 
+  // pipeline.yaml is NOT scaffolded: a standard deck is code/figures.do then
+  // outline.md, which the runner infers from the layout. Pass --pipeline to
+  // get an explicit spec, needed only for extra steps (a cleaning step, a ROI
+  // calculation, a second do-file).
   const copies = [
-    ["pipeline.yaml", "pipeline.yaml"],
     ["outline.md", "outline.md"],
     ["figures.do", path.join("code", "figures.do")],
   ];
+  if (process.argv.includes("--pipeline")) {
+    copies.unshift(["pipeline.yaml", "pipeline.yaml"]);
+  }
   let wrote = 0, skipped = 0;
   for (const [from, to] of copies) {
     const dst = path.join(cwd, to);
@@ -101,11 +107,8 @@ function main() {
 
   switch (cmd) {
     case "run":
-      if (!fs.existsSync(path.join(cwd, "pipeline.yaml"))) {
-        console.error(C.red(`oi-deck: no pipeline.yaml here (${cwd}).`));
-        console.error(C.dim("  Run `oi-deck new <Name>` to scaffold one."));
-        process.exit(1);
-      }
+      // pipeline.yaml is optional: without one, run_pipeline.js implies
+      // code/figures.do -> outline.md from the folder layout.
       return run("run_pipeline.js", [cwd, ...rest]);
 
     case "lint":
@@ -137,7 +140,8 @@ function main() {
       console.log(`
 ${C.bold("oi-deck")} — run the OI deck pipeline from inside a deck folder
 
-  ${C.bold("oi-deck new")} [Name]      scaffold pipeline.yaml, outline.md, code/figures.do here
+  ${C.bold("oi-deck new")} [Name]      scaffold outline.md + code/figures.do here
+      --pipeline            also write an explicit pipeline.yaml (for extra steps)
   ${C.bold("oi-deck run")}             walk the DAG, skipping fresh steps
       --force               run every step
       --dry-run             show what would run

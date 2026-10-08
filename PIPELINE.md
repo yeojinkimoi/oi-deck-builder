@@ -77,24 +77,39 @@ Run these from inside a deck folder.
 
 Set `OI_STATA` if Stata is somewhere unusual; otherwise it is auto-detected.
 
-## pipeline.yaml
+## pipeline.yaml — optional
 
-Edges are **inferred** from the `in`/`out` lists — there is no `needs:` key to
-keep in sync. A step reruns when an output is missing, an input is newer than
-an output, or a step it depends on reran.
+**A standard deck does not need one.** `code/figures.do` then `outline.md` is
+already implied by the folder layout, so `oi-deck run` infers it:
+
+```
+order: figures -> deck   (implied; no pipeline.yaml)
+```
+
+The disclosure is discovered from the `local release "..."` line in
+figures.do, resolved against the nearest `Disclosures/` above the deck, so
+changing the release still triggers a rebuild.
+
+Write an explicit spec (`oi-deck new <Name> --pipeline`) only when a deck
+deviates — an extra cleaning step, a ROI calculation, a second do-file, a
+figure directory elsewhere:
 
 ```yaml
 deck: tstc_oct2026
 steps:
+  - id:  clean
+    run: stata code/prepare_data.do
+    in:  [../../Disclosures/sep2026/release.xlsx, code/prepare_data.do]
+    out: [data/panel.dta]
   - id:  figures
     run: stata code/generate_figs.do
-    in:  [data/tstc_event_study.dta, code/generate_figs.do]
+    in:  [data/panel.dta, code/generate_figs.do]
     out: ["figures/*.svg", figures/facts.json]
 ```
 
-Paths are relative to the deck folder. The disclosure is reachable the same
-way — a deck under `Slides/<deck>/` reads
-`../../Disclosures/sep2026/release.xlsx`.
+Edges are **inferred** from the `in`/`out` lists — there is no `needs:` key to
+keep in sync. A step reruns when an output is missing, an input is newer than
+an output, or a step it depends on reran. Paths are relative to the deck.
 
 `run:` verbs:
 
@@ -106,28 +121,12 @@ way — a deck under `Slides/<deck>/` reads
 | `node <script>` | plain node |
 | anything else | through the shell |
 
-The `oi-*` verbs are provided by the package, so a deck's `pipeline.yaml`
-never contains a path to wherever the package is installed.
+The `oi-*` verbs are provided by the package, so a deck's spec never contains
+a path to wherever the package is installed.
 
 Batch Stata **exits 0 even when the do-file errored**, so the `stata` verb also
 greps the log for `r(NNN);` and fails the step on a hit. Never call Stata from
 a raw shell step for this reason.
-
-## outline.md → deck
-
-`outline_to_deck.js` parses the outline, emits `deck.js` (committed, the audit
-trail), and runs it. It handles the deterministic subset — TITLE SLIDE, TEXT,
-TABLE, 1/2/3/4-FIGURE, DIAGRAM, plus `**Notes**:` — and exits with
-`UNSUPPORTED: line N` on anything else rather than emitting a partial deck.
-The `deck-generator` agent takes over for those.
-
-A parser rather than an LLM because across the six real outlines in this repo
-**149 of 150 slide headings already conform** to the documented grammar. A
-deterministic build is also what removes the class of error where a subtitle is
-copied from the slide above and never updated.
-
-Missing figures fail the build. Pass `--draft` to skip those slides and get a
-report instead.
 
 ## The data-source slide
 

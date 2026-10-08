@@ -40,6 +40,7 @@ const fs = require("fs");
 const path = require("path");
 const yaml = require("js-yaml");
 const { spawnSync } = require("child_process");
+const { defaultSpec } = require("./default_spec.js");
 
 // ---------------------------------------------------------------- utilities
 
@@ -276,9 +277,11 @@ function main() {
 
   const deckDir = path.resolve(positional[0] || ".");
   const specPath = path.join(deckDir, "pipeline.yaml");
-  if (!fs.existsSync(specPath)) die(`no pipeline.yaml in ${deckDir}`);
-
-  const spec = yaml.load(fs.readFileSync(specPath, "utf8"));
+  // pipeline.yaml is OPTIONAL -- without one the pipeline is implied from
+  // the folder layout: code/figures.do, then outline.md.
+  const spec = fs.existsSync(specPath)
+    ? yaml.load(fs.readFileSync(specPath, "utf8"))
+    : defaultSpec(deckDir, die);
   if (!spec || !Array.isArray(spec.steps)) die("pipeline.yaml has no steps[]");
 
   // ${name} substitution from vars:, falling back to the environment. This is
@@ -308,7 +311,8 @@ function main() {
 
   console.log(C.bold(`\npipeline: ${spec.deck || path.basename(deckDir)}`));
   console.log(C.dim(`  ${deckDir}`));
-  console.log(C.dim(`  order: ${order.map((s) => s.id).join(" -> ")}\n`));
+  console.log(C.dim(`  order: ${order.map((s) => s.id).join(" -> ")}` +
+    (spec._implied ? "   (implied; no pipeline.yaml)" : "") + String.fromCharCode(10)));
 
   const forced = new Set();
   let ran = 0, skipped = 0;
