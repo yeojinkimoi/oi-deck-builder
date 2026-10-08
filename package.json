@@ -4,12 +4,24 @@
   "description": "Reusable slide deck builder for Opportunity Insights presentations (OI house style, Princeton Oct 2025 template)",
   "main": "oi_deck_builder.js",
   "type": "commonjs",
-  "keywords": ["pptx", "slides", "opportunity-insights"],
+  "keywords": [
+    "pptx",
+    "slides",
+    "opportunity-insights"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",
+    "js-yaml": "^5.4.3",
     "jszip": "^3.10.1",
     "pptxgenjs": "^4.0.1"
+  },
+  "scripts": {
+    "pipeline": "node scripts/run_pipeline.js",
+    "outline": "node scripts/outline_to_deck.js",
+    "check": "node scripts/check_style.js",
+    "comments": "node scripts/extract_pptx_comments.js",
+    "fingerprint": "node scripts/fingerprint.js"
   }
 }

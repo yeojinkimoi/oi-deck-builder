@@ -1,0 +1,57 @@
+# TSTC October 2026 deck — disclosure xlsx -> clean -> figures + facts -> pptx
+#
+#   npm run pipeline decks/tstc_oct2026
+#   npm run pipeline decks/tstc_oct2026 -- --force
+#   npm run pipeline decks/tstc_oct2026 -- --dry-run
+#
+# Dependency edges are inferred from the in/out file lists, so there is no
+# separate `needs:` to keep in sync. A step reruns when one of its outputs is
+# missing, when an input is newer than an output, or when a step it depends on
+# reran.
+
+deck: tstc_oct2026
+
+vars:
+  # The Stata code, data and figures live in the Dropbox clone of
+  # workforce-training; outline.md and deck.js live here.
+  src: "C:/Users/realj/Opportunity Insights Dropbox/Opportunity Insights Shared Workspace/Research files/outside/workforce_training/Slides/TSTC_oct2026"
+  disclosure: "C:/Users/realj/Opportunity Insights Dropbox/Opportunity Insights Shared Workspace/Research files/outside/workforce_training/Disclosures/sep2026"
+
+steps:
+  - id: clean
+    run: stata "${src}/code/prepare_data.do"
+    in:
+      - "${disclosure}/sep2026_for_release_T13_T26.xlsx"
+      - "${src}/code/prepare_data.do"
+    out:
+      - "${src}/data/tstc_event_study.dta"
+
+  - id: figures
+    run: stata "${src}/code/generate_figs.do"
+    in:
+      - "${src}/data/tstc_event_study.dta"
+      - "${src}/code/generate_figs.do"
+    out:
+      - "${src}/figures/*_event_study.svg"
+      - "${src}/figures/facts.json"
+
+  - id: roi
+    run: stata "${src}/code/calculate_roi_tstc.do"
+    in:
+      - "${src}/data/tstc_event_study.dta"
+      - "${src}/data/tstc_program_cost_completion.csv"
+      - "${src}/code/calculate_roi_tstc.do"
+    out:
+      - "${src}/data/tstc_roi.csv"
+      - "${src}/data/tstc_roi.txt"
+      - "${src}/figures/facts_roi.json"
+
+  - id: deck
+    run: node ../../scripts/outline_to_deck.js outline.md --fig-dir "${src}/figures" --output TSTC_deck.pptx
+    in:
+      - outline.md
+      - "${src}/figures/*_event_study.svg"
+      - "${src}/figures/facts.json"
+      - "${src}/figures/facts_roi.json"
+    out:
+      - TSTC_deck.pptx

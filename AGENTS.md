@@ -1,5 +1,12 @@
 # oi-slide: OI Deck Builder
 
+> **New: the deck pipeline.** For a data deck, do not hand-write `deck.js`.
+> Run `npm run pipeline decks/<deck>`, which goes disclosure workbook -> Stata
+> -> SVGs + facts.json -> outline.md -> .pptx, rerunning only stale steps.
+> See **PIPELINE.md**. Copy `decks/_template/` to start one. The API reference
+> below still describes the builder those generated scripts call, and remains
+> the right reference when you write a deck script by hand.
+
 This project generates PowerPoint (.pptx) slide decks in the Opportunity Insights house style. All styling, layout, colors, fonts, and figure placement are handled by `oi_deck_builder.js`. Project-specific decks (like `example/wgu_deck.js`) only contain content -- slide titles, text, figure names, and table data.
 
 ## How to build a deck from an outline

@@ -1,0 +1,47 @@
+# Copy this folder to decks/<your_deck>/ and edit.
+#
+#   npm run pipeline decks/<your_deck>
+#   npm run pipeline decks/<your_deck> -- --dry-run
+#   npm run pipeline decks/<your_deck> -- --force
+#   npm run pipeline decks/<your_deck> -- --only figures
+#
+# Edges are inferred from the in/out file lists, so there is no separate
+# `needs:` to keep in sync. A step reruns when one of its outputs is missing,
+# when an input is newer than an output, or when a step it depends on reran.
+#
+# ${name} is substituted from vars: below, falling back to the environment.
+# This is how a deck whose Stata code and figures live in Dropbox, while its
+# outline and deck.js live in this repo, writes paths that reach both.
+
+deck: my_deck
+
+vars:
+  src: "C:/path/to/Dropbox/.../Slides/MY_DECK"
+  disclosure: "C:/path/to/Dropbox/.../Disclosures/sep2026"
+
+steps:
+  - id: clean
+    run: stata "${src}/code/prepare_data.do"
+    in:
+      - "${disclosure}/<release>.xlsx"
+      - "${src}/code/prepare_data.do"
+    out:
+      - "${src}/data/panel.dta"
+
+  - id: figures
+    run: stata "${src}/code/figures.do"
+    in:
+      - "${src}/data/panel.dta"
+      - "${src}/code/figures.do"
+    out:
+      - "${src}/figures/*.svg"
+      - "${src}/figures/facts.json"
+
+  - id: deck
+    run: node ../../scripts/outline_to_deck.js outline.md --fig-dir "${src}/figures" --output MyDeck.pptx
+    in:
+      - outline.md
+      - "${src}/figures/*.svg"
+      - "${src}/figures/facts.json"
+    out:
+      - MyDeck.pptx

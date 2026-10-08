@@ -437,6 +437,7 @@ async function graftOntoTemplate(deckPath, templatePath, layoutNames) {
 
   let mediaCounter = 0;
   const added = []; // { num }
+  const notesToAdd = []; // { num, xml } — speaker notes with real text, preserved through the graft
   for (let i = 0; i < deckSlides.length; i++) {
     const srcSlide = deckSlides[i];
     const num = i + 1;
@@ -455,7 +456,19 @@ async function graftOntoTemplate(deckPath, templatePath, layoutNames) {
         const part = layoutNameToPart[layoutNames[i]] || layoutNameToPart[LAYOUTS.T_NOSRC];
         newRels.push(`<Relationship Id="${id}" Type="${type}" Target="../slideLayouts/${part}"/>`);
       } else if (/\/notesSlide$/.test(type)) {
-        continue; // drop notes
+        // Preserve speaker notes, but only when the notes body has real text (skip the
+        // empty notesSlide PptxGenJS emits for every slide — its only <a:t> is the
+        // slide-number field). notesMaster/theme are inherited from the template clone.
+        const nf = deckZip.file(resolveFromSlide(target));
+        if (nf) {
+          const nxml = await nf.async("string");
+          const body = nxml.replace(/<a:fld\b[\s\S]*?<\/a:fld>/g, "");
+          if (/<a:t>[^<]*\S[^<]*<\/a:t>/.test(body)) {
+            notesToAdd.push({ num, xml: nxml });
+            newRels.push(`<Relationship Id="${id}" Type="${type}" Target="../notesSlides/notesSlide${num}.xml"/>`);
+          }
+        }
+        continue;
       } else if (/\/image$/.test(type)) {
         const srcMedia = resolveFromSlide(target);
         const ext = extname(srcMedia);
@@ -474,6 +487,19 @@ async function graftOntoTemplate(deckPath, templatePath, layoutNames) {
         `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${newRels.join("")}</Relationships>`
     );
     added.push({ num });
+  }
+
+  // 3b) Write preserved notesSlides (+ rels pointing at the template's notesMaster and the slide).
+  for (const n of notesToAdd) {
+    out.file(`ppt/notesSlides/notesSlide${n.num}.xml`, n.xml);
+    out.file(
+      `ppt/notesSlides/_rels/notesSlide${n.num}.xml.rels`,
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n` +
+        `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
+        `<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster" Target="../notesMasters/notesMaster1.xml"/>` +
+        `<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="../slides/slide${n.num}.xml"/>` +
+        `</Relationships>`
+    );
   }
 
   // 4) presentation.xml.rels — drop old slide rels, append new ones after max rId.
@@ -505,7 +531,10 @@ async function graftOntoTemplate(deckPath, templatePath, layoutNames) {
   const overrides = added
     .map((s) => `<Override PartName="/ppt/slides/slide${s.num}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`)
     .join("");
-  ct = ct.replace("</Types>", overrides + "</Types>");
+  const notesOverrides = notesToAdd
+    .map((n) => `<Override PartName="/ppt/notesSlides/notesSlide${n.num}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml"/>`)
+    .join("");
+  ct = ct.replace("</Types>", overrides + notesOverrides + "</Types>");
   for (const [ext, type] of [["png", "image/png"], ["svg", "image/svg+xml"], ["jpeg", "image/jpeg"], ["jpg", "image/jpg"]]) {
     if (!new RegExp(`<Default Extension="${ext}"`).test(ct)) {
       ct = ct.replace('<Default Extension="xml"', `<Default Extension="${ext}" ContentType="${type}"/><Default Extension="xml"`);
@@ -649,15 +678,21 @@ class OIDeckBuilder {
     // Keys/values are hex (with or without "#"). Source SVGs are never modified.
     this.colorMap = opts.colorMap || null;
     const builderDir = __dirname;
-    this.logoSmallPath = opts.logoSmall || path.join(builderDir, "oi_logo.png");
-    this.logoTitlePath = opts.logoTitle || path.join(builderDir, "oi_logo_full.png");
+    // Assets resolve from this folder first, then the parent (so oi-slide-v2 can live
+    // inside the original oi-slide checkout without duplicating binaries).
+    const firstExisting = (...cands) => cands.find((c) => fs.existsSync(c)) || cands[0];
+    this.logoSmallPath = opts.logoSmall || firstExisting(
+      path.join(builderDir, "oi_logo.png"), path.join(builderDir, "..", "oi_logo.png"));
+    this.logoTitlePath = opts.logoTitle || firstExisting(
+      path.join(builderDir, "oi_logo_full.png"), path.join(builderDir, "..", "oi_logo_full.png"));
 
     // Real OI template to graft named layouts from. When present, every generated
     // slide is routed to one of the template's named layouts and the layout supplies
     // the chrome (small logo, teal underline, source rule, intro background), so the
     // builder skips drawing those. Set templateLayouts:false to fall back to the
     // legacy self-drawn chrome (e.g. if the template file is unavailable).
-    this.templatePath = opts.templatePath || path.join(builderDir, "EOP Blank Template.pptx");
+    this.templatePath = opts.templatePath || firstExisting(
+      path.join(builderDir, "EOP Blank Template.pptx"), path.join(builderDir, "..", "EOP Blank Template.pptx"));
     this.templateLayouts = opts.templateLayouts !== false && fs.existsSync(this.templatePath);
     // Layout name recorded per slide (slide creation order), consumed by the graft.
     this._layoutForSlide = [];
@@ -828,6 +863,11 @@ class OIDeckBuilder {
     }
   }
 
+  /** Attach a speaker note to a slide (opts.notes). Preserved through the template graft. */
+  _applyNotes(slide, opts) {
+    if (opts && opts.notes) slide.addNotes(String(opts.notes));
+  }
+
   // ── High-level slide builders ────────────────────────────────────────────
 
   /**
@@ -946,6 +986,7 @@ class OIDeckBuilder {
       this.addSourceLine(slide, opts.citation);
     }
     this.addLogo(slide);
+    this._applyNotes(slide, opts);
     return slide;
   }
 
@@ -1096,6 +1137,7 @@ class OIDeckBuilder {
       this.addSourceLine(slide, opts.citation);
     }
     this.addLogo(slide);
+    this._applyNotes(slide, opts);
     return slide;
   }
 
@@ -1198,6 +1240,7 @@ class OIDeckBuilder {
       this.addSourceLine(slide, opts.citation);
     }
     this.addLogo(slide);
+    this._applyNotes(slide, opts);
     return slide;
   }
 
@@ -1345,7 +1388,7 @@ class OIDeckBuilder {
         numberCounter++;
         prefix = `${numberCounter}. `;
       } else {
-        prefix = indent > 0 ? "\u2013 " : "\u2022 ";
+        prefix = indent > 0 ? "– " : "• ";
       }
 
       // Strip bullet from options (we handle it as text prefix now)
@@ -1382,6 +1425,7 @@ class OIDeckBuilder {
 
     if (hasSource) this.addSourceLine(slide, opts.citation);
     this.addLogo(slide);
+    this._applyNotes(slide, opts);
     return slide;
   }
 
@@ -1445,6 +1489,7 @@ class OIDeckBuilder {
 
     if (hasSource) this.addSourceLine(slide, opts.citation);
     this.addLogo(slide);
+    this._applyNotes(slide, opts);
     return slide;
   }
 
