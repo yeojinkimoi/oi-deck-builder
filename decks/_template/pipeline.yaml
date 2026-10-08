@@ -1,47 +1,52 @@
-# Copy this folder to decks/<your_deck>/ and edit.
+# MY_DECK — disclosure xlsx -> clean -> figures + facts -> pptx
 #
-#   npm run pipeline decks/<your_deck>
-#   npm run pipeline decks/<your_deck> -- --dry-run
-#   npm run pipeline decks/<your_deck> -- --force
-#   npm run pipeline decks/<your_deck> -- --only figures
+# Everything this deck needs lives in this folder. From here:
 #
-# Edges are inferred from the in/out file lists, so there is no separate
-# `needs:` to keep in sync. A step reruns when one of its outputs is missing,
-# when an input is newer than an output, or when a step it depends on reran.
+#   oi-deck run              walk the DAG, skipping fresh steps
+#   oi-deck run --force      run everything
+#   oi-deck run --dry-run    show what would run
+#   oi-deck run --only figures
+#   oi-deck lint             parse outline.md, build nothing
+#   oi-deck check            style-check the built deck
 #
-# ${name} is substituted from vars: below, falling back to the environment.
-# This is how a deck whose Stata code and figures live in Dropbox, while its
-# outline and deck.js live in this repo, writes paths that reach both.
+# Paths are relative to this folder, so nothing points back at wherever
+# oi-deck-builder is installed. Edges are inferred from the in/out lists --
+# there is no separate `needs:` to keep in sync. A step reruns when an output
+# is missing, an input is newer than an output, or a step it depends on reran.
+#
+# run: verbs
+#   stata <file.do>     batch Stata; fails on a non-zero exit OR an r(NNN) in
+#                       the log, because batch Stata exits 0 on some errors
+#   oi-outline <args>   the outline -> deck.js -> .pptx step
+#   oi-check <deck>     style report
+#   node <script>       plain node
+#   anything else       through the shell
 
 deck: my_deck
 
-vars:
-  src: "C:/path/to/Dropbox/.../Slides/MY_DECK"
-  disclosure: "C:/path/to/Dropbox/.../Disclosures/sep2026"
-
 steps:
   - id: clean
-    run: stata "${src}/code/prepare_data.do"
+    run: stata code/prepare_data.do
     in:
-      - "${disclosure}/<release>.xlsx"
-      - "${src}/code/prepare_data.do"
+      - ../../Disclosures/sep2026/<release>.xlsx
+      - code/prepare_data.do
     out:
-      - "${src}/data/panel.dta"
+      - data/panel.dta
 
   - id: figures
-    run: stata "${src}/code/figures.do"
+    run: stata code/figures.do
     in:
-      - "${src}/data/panel.dta"
-      - "${src}/code/figures.do"
+      - data/panel.dta
+      - code/figures.do
     out:
-      - "${src}/figures/*.svg"
-      - "${src}/figures/facts.json"
+      - figures/*.svg
+      - figures/facts.json
 
   - id: deck
-    run: node ../../scripts/outline_to_deck.js outline.md --fig-dir "${src}/figures" --output MyDeck.pptx
+    run: oi-outline outline.md --fig-dir figures --output MyDeck.pptx
     in:
       - outline.md
-      - "${src}/figures/*.svg"
-      - "${src}/figures/facts.json"
+      - figures/*.svg
+      - figures/facts.json
     out:
       - MyDeck.pptx

@@ -206,6 +206,17 @@ function runStep(step, deckDir, stataDir) {
   if (verb === "node") {
     return runNode(path.resolve(deckDir, rest[0]), deckDir, rest.slice(1));
   }
+  // Package-provided verbs, so a deck's pipeline.yaml never has to contain a
+  // path back into wherever oi-deck-builder happens to be installed.
+  const PKG = process.env.OI_DECK_HOME || path.resolve(__dirname, "..");
+  const builtin = {
+    "oi-outline": "outline_to_deck.js",
+    "oi-check": "check_style.js",
+    "oi-fingerprint": "fingerprint.js",
+  };
+  if (builtin[verb]) {
+    return runNode(path.join(PKG, "scripts", builtin[verb]), deckDir, rest);
+  }
   return runShell(run, deckDir);
 }
 

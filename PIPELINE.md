@@ -21,10 +21,34 @@ Disclosures/<release>.xlsx
 
 ## Quick start
 
+Install once:
+
 ```bash
+cd /path/to/oi-deck-builder
 npm ci
-cp -r decks/_template decks/my_deck      # edit pipeline.yaml, outline.md, figures.do
-npm run pipeline decks/my_deck
+npm link            # puts `oi-deck` on your PATH
+```
+
+Then **everything happens inside the deck folder**. Nothing points back at the
+package:
+
+```bash
+cd ".../Slides/TSTC_oct2026"
+oi-deck new "TSTC Oct 2026"    # scaffolds pipeline.yaml, outline.md, code/figures.do
+oi-deck run
+```
+
+A deck folder holds all of it:
+
+```
+Slides/TSTC_oct2026/
+├── pipeline.yaml       the DAG
+├── outline.md          slide titles, subtitles, {{facts}}
+├── code/               prepare_data.do, generate_figs.do, ...
+├── data/               .dta, .csv
+├── figures/            .svg + facts.json
+├── deck.js             generated, committed as the audit trail
+└── TSTC_deck.pptx      output
 ```
 
 Stata needs two machine-specific globals in your `profile.do`; everything else
@@ -37,15 +61,19 @@ global dropbox          "C:/path/to/Dropbox/Research files"
 
 ## Commands
 
+Run these from inside a deck folder.
+
 | | |
 |---|---|
-| `npm run pipeline decks/<d>` | run the DAG, skipping fresh steps |
-| `npm run pipeline decks/<d> -- --dry-run` | show what would run |
-| `npm run pipeline decks/<d> -- --force` | run everything |
-| `npm run pipeline decks/<d> -- --only figures` | one step |
-| `npm run outline decks/<d>/outline.md -- --lint` | parse and validate, build nothing |
-| `npm run check decks/<d>/MyDeck.pptx` | style report |
-| `npm run fingerprint <deck.pptx>` | structural fingerprint, for regression diffs |
+| `oi-deck new [Name]` | scaffold a deck here |
+| `oi-deck run` | run the DAG, skipping fresh steps |
+| `oi-deck run --dry-run` | show what would run |
+| `oi-deck run --force` | run everything |
+| `oi-deck run --only figures` | one step |
+| `oi-deck lint` | parse and validate outline.md, build nothing |
+| `oi-deck check` | style report on the built deck |
+| `oi-deck fingerprint` | structural fingerprint, for regression diffs |
+| `oi-deck where` | where the package is installed |
 
 Set `OI_STATA` if Stata is somewhere unusual; otherwise it is auto-detected.
 
@@ -56,26 +84,34 @@ keep in sync. A step reruns when an output is missing, an input is newer than
 an output, or a step it depends on reran.
 
 ```yaml
-deck: my_deck
-vars:
-  src: "C:/path/to/Dropbox/.../Slides/MY_DECK"
+deck: tstc_oct2026
 steps:
   - id:  figures
-    run: stata "${src}/code/figures.do"
-    in:  ["${src}/data/panel.dta", "${src}/code/figures.do"]
-    out: ["${src}/figures/*.svg", "${src}/figures/facts.json"]
+    run: stata code/generate_figs.do
+    in:  [data/tstc_event_study.dta, code/generate_figs.do]
+    out: ["figures/*.svg", figures/facts.json]
 ```
 
-`${name}` is substituted from `vars:`, falling back to the environment. This is
-how a deck whose Stata and figures live in Dropbox, while its outline and
-deck.js live here, writes paths that reach both. **Quote any path containing
-`${}`** — OI paths sit under "Opportunity Insights Dropbox" and an unquoted
-path would be split on its spaces.
+Paths are relative to the deck folder. The disclosure is reachable the same
+way — a deck under `Slides/<deck>/` reads
+`../../Disclosures/sep2026/release.xlsx`.
 
-`run:` verbs: `stata <file.do>`, `node <script>`, or anything else through the
-shell. Batch Stata **exits 0 even when the do-file errored**, so the Stata verb
-also greps the log for `r(NNN);` and fails the step on a hit. Never call Stata
-from a raw shell step for this reason.
+`run:` verbs:
+
+| verb | |
+|---|---|
+| `stata <file.do>` | batch Stata |
+| `oi-outline <args>` | the outline → deck.js → .pptx step |
+| `oi-check <deck>` | style report |
+| `node <script>` | plain node |
+| anything else | through the shell |
+
+The `oi-*` verbs are provided by the package, so a deck's `pipeline.yaml`
+never contains a path to wherever the package is installed.
+
+Batch Stata **exits 0 even when the do-file errored**, so the `stata` verb also
+greps the log for `r(NNN);` and fails the step on a hit. Never call Stata from
+a raw shell step for this reason.
 
 ## outline.md → deck
 

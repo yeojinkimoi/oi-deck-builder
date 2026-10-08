@@ -1,5 +1,5 @@
 {
-  "name": "oi-slide",
+  "name": "oi-deck-builder",
   "version": "1.0.0",
   "description": "Reusable slide deck builder for Opportunity Insights presentations (OI house style, Princeton Oct 2025 template)",
   "main": "oi_deck_builder.js",
@@ -23,5 +23,22 @@
     "check": "node scripts/check_style.js",
     "comments": "node scripts/extract_pptx_comments.js",
     "fingerprint": "node scripts/fingerprint.js"
-  }
+  },
+  "bin": {
+    "oi-deck": "./bin/oi-deck.js"
+  },
+  "files": [
+    "bin/",
+    "scripts/",
+    "decks/_template/",
+    "templates/",
+    "figspecs/",
+    "oi_deck_builder.js",
+    "oi_shapes.js",
+    "oi_logo.png",
+    "oi_logo_full.png",
+    "EOP Blank Template.pptx",
+    "PIPELINE.md",
+    "CLAUDE.md"
+  ]
 }

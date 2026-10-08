@@ -28,9 +28,10 @@ clear all
 *          global dropbox          "C:/path/to/Dropbox/Research files"
 do "${workforce_github}/ado/oi_setup.do"
 
-global curr_slides "${slides}/MY_DECK"
-global figures     "${curr_slides}/figures"
-global data        "${curr_slides}/data"
+* Paths are relative to the deck folder, which is where oi-deck runs Stata
+* from. Keeping them relative is what lets the whole deck live in one folder.
+global figures "figures"
+global data    "data"
 
 * While iterating on a shared ado, -discard- forces Stata to reload it.
 * Without this you will edit an .ado, rerun, and keep getting the old

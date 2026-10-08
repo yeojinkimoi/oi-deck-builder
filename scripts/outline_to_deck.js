@@ -185,7 +185,8 @@ function emitDeck(model, opts) {
   L.push("// Re-run:  npm run pipeline " + (opts.deckName || "decks/<deck>"));
   L.push("");
   L.push('const path = require("path");');
-  L.push('const { OIDeckBuilder, parseArgs } = require(' + q(opts.builderRequire) + ");");
+  L.push("const OI_HOME = process.env.OI_DECK_HOME || " + q(opts.pkgHome) + ";");
+  L.push('const { OIDeckBuilder, parseArgs } = require(path.join(OI_HOME, "oi_deck_builder.js"));');
   L.push("");
   L.push("const BASE = __dirname;");
   L.push("const cliOpts = parseArgs();");
@@ -412,12 +413,13 @@ function main() {
   if (argv.includes("--lint")) return;
 
   // ---- emit deck.js
-  const builderRel = path
-    .relative(deckDir, path.resolve(__dirname, "..", "oi_deck_builder.js"))
-    .replace(/\\/g, "/")
-    .replace(/\.js$/, "");
+  // The deck folder usually sits outside this package -- a deck keeps all of
+  // its files together, wherever it lives -- so the generated deck.js cannot
+  // use a relative require. It resolves OI_DECK_HOME at run time (set by the
+  // oi-deck CLI) and falls back to wherever the package was when generated.
+  const pkgHome = path.resolve(__dirname, "..").split(path.sep).join("/");
   const code = emitDeck(model, {
-    builderRequire: builderRel.startsWith(".") ? builderRel : "./" + builderRel,
+    pkgHome,
     figDir,
     output,
     deckName: path.relative(path.resolve(__dirname, ".."), deckDir).replace(/\\/g, "/"),
