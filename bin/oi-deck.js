@@ -81,6 +81,7 @@ function scaffold(cwd, name) {
     let body = fs.readFileSync(path.join(tpl, from), "utf8");
     body = body
       .replace(/MY_DECK/g, deckName)
+      .replace(/MY_PROGRAM/g, deckName)
       .replace(/my_deck/g, slug)
       .replace(/MyDeck\.pptx/g, outName);
     fs.writeFileSync(dst, body);
