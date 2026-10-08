@@ -157,6 +157,10 @@ Open `outline.md`. One `###` heading per slide:
 Slide types: `TITLE SLIDE`, `TEXT`, `TABLE`, `1-FIGURE`, `2-FIGURE`,
 `3-FIGURE`, `4-FIGURE`, `DIAGRAM`.
 
+The `TITLE SLIDE` comes out plain — white, title block right-aligned, full OI
+logo bottom-right. For the photographic front page instead, add
+`- **Intro background**: photo` to Deck Settings (see `PIPELINE.md`).
+
 ### Never type a number
 
 `{{te_yr5.aas_engineering_graduate}}` reads from `figures/facts.json`, which

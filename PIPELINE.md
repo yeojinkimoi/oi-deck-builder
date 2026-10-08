@@ -136,13 +136,18 @@ A provenance slide is inserted automatically straight after the title slide:
 Data Source
   Figures in this deck are generated from:
     sep2026_for_release_T13_T26.xlsx
-    sheet: tstc_es  ·  statistic: mean  ·  102 rows
+    sheet: tstc_es
 ```
 
 The filename comes from **what the reader actually read**, not from anything
 typed in the outline — `oi_use_disclosure` records `source.workbook`,
 `source.sheet`, `source.statistic` and `source.rows` as facts on every run. A
 deck therefore cannot name a release it was not built from.
+
+The slide shows the **workbook and sheet only**. `source.statistic` and
+`source.rows` describe how the sheet was read rather than where the deck came
+from, so they stay in `facts.json` for an appendix slide to quote with
+`{{source.statistic}}` / `{{source.rows}}`.
 
 Suppress it with `- **Source slide**: no`, or retitle it with
 `- **Source slide title**: Data and Disclosure`.
@@ -198,6 +203,37 @@ never typed.
 Overridable defaults: `Cohort` (Graduate), `Comparison` (Digital Twins),
 `Show effect` (no), `Effect word` (Increase), `Effect fact` (te_yr5). An
 explicit `Title:` or `Subtitle:` always wins.
+
+## The title slide
+
+The front page is **plain by default**: white, the title block right-aligned at
+y=2.25, 32pt bold Lucida Bright over a 24pt Lucida Bright subtitle, the date
+and notice at 12pt bold, and the full OI logo bottom-right.
+
+The photographic front page -- the template's own Intro layout, with the crowd
+photo, the white band and the logo band, title at y=4.94 -- is the opt-in:
+
+```markdown
+- **Intro background**: photo
+```
+
+Accepted values are `plain` (the default), `white` (a synonym for `plain`) and
+`photo`. Anything else fails the build rather than quietly giving you the
+default: the two front pages look nothing alike, so rendering the wrong one in
+silence is worse than stopping.
+
+How the plain one is built, for anyone reading the XML later: all five template
+layouts draw chrome of their own, so the plain title slide sits on the leanest
+of them (`1_OI Theme: Title - No Subtitle, no Source Footer`) with
+`showMasterSp="0"` -- PowerPoint's *Hide Background Graphics* -- set on that one
+slide, plus an explicit white background. No layout is added to the deck, and
+every other slide on that same layout keeps its teal rule and corner logo.
+
+A hand-written deck.js takes the same choice as a constructor option:
+
+```js
+new OIDeckBuilder({ introBackground: "photo" })
+```
 
 **One slide per panel.** A combined multi-panel slide or a summary table is
 something to add deliberately, when asked for — not a default.

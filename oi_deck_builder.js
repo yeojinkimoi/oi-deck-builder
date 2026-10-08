@@ -89,10 +89,16 @@ const theme = {
   // (13.333/2 = 6.667). Figures are contained + centered inside the box, so a
   // centered box is what makes them land centered on the slide. Only y/h differ.
   figBox: {
-    SINGLE:     { x: 0.679, y: 1.185, w: 11.975, h: 6.070 },
+    // y=1.540 matches FOUR_PANEL: the subtitle box ends at 0.787+0.285 = 1.072 and
+    // the teal rule sits at 1.095, so a figure starting at 1.185 cleared the subtitle
+    // by 0.113" and read as touching it. A 17x9 figure is height-constrained in this
+    // box, so the top is what sets the gap; the bottom stays clear of the slide edge.
+    // h runs to the slide's bottom edge (1.540 + 5.960 = 7.500): the figure is
+    // height-constrained here, so its canvas bleeds flush to the bottom.
+    SINGLE:     { x: 0.679, y: 1.540, w: 11.975, h: 5.960 },
     // Source-footer variant: bottom pulled up to the content region (~6.77") so the
     // figure's canvas doesn't cover the layout's source rule at y=7.09.
-    SINGLE_SRC: { x: 0.679, y: 1.185, w: 11.975, h: 5.585 },
+    SINGLE_SRC: { x: 0.679, y: 1.540, w: 11.975, h: 5.230 },
     // 2-panel: pulled down for breathing room after the title.
     TWO_PANEL:  { x: 0.679, y: 2.040, w: 11.975, h: 4.732 },
     // 4-panel: slight breathing room after the title.
@@ -158,6 +164,29 @@ function layoutFor(hasSubtitle, hasSource) {
   return LAYOUTS.T_NOSRC;
 }
 
+// Title-slide background, as the constructor's introBackground option accepts it.
+// "white" is a synonym for "plain" because that is how people describe the look;
+// both canonicalize to "plain" so the rest of the builder tests one value.
+const INTRO_BACKGROUNDS = { plain: "plain", white: "plain", photo: "photo" };
+
+/**
+ * Canonicalize introBackground, or throw naming what is allowed.
+ *
+ * A typo must not quietly fall back to the default: the whole point of the option
+ * is that the two front pages look nothing alike, so silently rendering the wrong
+ * one is worse than failing the build.
+ */
+function normalizeIntroBackground(value) {
+  if (value === undefined || value === null || value === "") return "plain";
+  const key = String(value).trim().toLowerCase();
+  if (INTRO_BACKGROUNDS[key]) return INTRO_BACKGROUNDS[key];
+  throw new Error(
+    `introBackground: unknown value ${JSON.stringify(value)}. ` +
+      `Valid values: ${Object.keys(INTRO_BACKGROUNDS).join(", ")} ` +
+      `("white" is a synonym for "plain"; "plain" is the default).`
+  );
+}
+
 // Intro-slide text placement (right-aligned, sitting in the layout's white band).
 // Matches the template's Intro layout placeholders (center title / subtitle / body).
 theme.introBox = {
@@ -165,7 +194,8 @@ theme.introBox = {
   subtitle: { x: 4.416, y: 6.02, w: 8.237,  h: 0.50 },
   meta:     { x: 4.416, y: 6.56, w: 8.237,  h: 0.66 },
   advanced: { x: 1.681, y: 4.83, w: 10.972, h: 2.42 }, // textItems form
-  legacy:   { x: 0.53,  y: 2.25, w: 12.12,  h: 2.15 }, // self-drawn title slide (no template)
+  legacy:   { x: 0.53,  y: 2.25, w: 12.12,  h: 2.15 }, // plain title slide (drawn in full)
+  gap:      [20, 10], // pt, spacer lines between the subtitle and the date/notice
 };
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -391,8 +421,10 @@ async function injectSvgPreviews(pptxPath, rasterWidth = 2400) {
  * @param {string} deckPath      - path to the PptxGenJS-written .pptx (overwritten in place)
  * @param {string} templatePath  - path to the OI template .pptx
  * @param {string[]} layoutNames - layout name per slide, in slide order (slide1..N)
+ * @param {boolean[]} [hideMasterSp] - per slide, same order: strip the layout's own
+ *        drawn chrome from that ONE slide (see the showMasterSp note in the copy loop)
  */
-async function graftOntoTemplate(deckPath, templatePath, layoutNames) {
+async function graftOntoTemplate(deckPath, templatePath, layoutNames, hideMasterSp = []) {
   const JSZip = require("jszip");
 
   const deckZip = await JSZip.loadAsync(fs.readFileSync(deckPath));
@@ -441,7 +473,31 @@ async function graftOntoTemplate(deckPath, templatePath, layoutNames) {
   for (let i = 0; i < deckSlides.length; i++) {
     const srcSlide = deckSlides[i];
     const num = i + 1;
-    const slideXml = await deckZip.file(srcSlide).async("string");
+    let slideXml = await deckZip.file(srcSlide).async("string");
+
+    // Every layout in the OI template draws chrome of its own -- the Intro one a
+    // photo background and logo band, the other four a teal rule and the small
+    // corner logo. A slide the builder draws in full (the plain title slide) wants
+    // none of it, so it sets showMasterSp="0": the "Hide Background Graphics"
+    // attribute, which drops every NON-placeholder shape the layout and master
+    // contribute, on this one slide only. That is why the plain title slide can sit
+    // on a real template layout instead of needing a synthesized blank one.
+    //
+    // It is per slide, not per layout name, deliberately: T_NOSRC is a layout that
+    // ordinary no-subtitle slides use, and they must keep their chrome.
+    if (hideMasterSp[i] && !/\bshowMasterSp=/.test(slideXml)) {
+      const before = slideXml;
+      slideXml = slideXml.replace(/<p:sld\b((?:\s[^>]*)?)>/, '<p:sld$1 showMasterSp="0">');
+      // Assert rather than trust: if a future PptxGenJS changes the root tag the
+      // replace would no-op and the chrome would quietly come back -- a visual-only
+      // regression no test catches.
+      if (slideXml === before) {
+        throw new Error(
+          `Could not set showMasterSp on slide ${num}: no <p:sld> root tag matched. ` +
+            `The plain title slide would render with the layout's chrome.`
+        );
+      }
+    }
 
     const relName = `ppt/slides/_rels/${basename(srcSlide)}.rels`;
     const relXml = deckZip.file(relName) ? await deckZip.file(relName).async("string") : "";
@@ -559,7 +615,7 @@ async function graftOntoTemplate(deckPath, templatePath, layoutNames) {
  * Fit an image into a fixed box while preserving aspect ratio ("contain" fit).
  * valign: "middle" centers vertically; "top" pins to top of box.
  */
-function containInBox(box, imgAspect, valign = "middle") {
+function containInBox(box, imgAspect, valign = "middle", halign = "center") {
   const boxAspect = box.w / box.h;
   let w, h, x, y;
 
@@ -572,7 +628,11 @@ function containInBox(box, imgAspect, valign = "middle") {
     h = box.h;
     w = h * imgAspect;
     y = box.y;
-    x = box.x + (box.w - w) / 2;
+    // A height-constrained figure is narrower than its box. Centering it leaves the
+    // figure floating right of the content margin -- for a 17x9 event study, 0.358"
+    // right of where the title, subtitle and teal rule all start. halign:"left"
+    // anchors it to the margin instead, and does so for any aspect ratio.
+    x = halign === "left" ? box.x : box.x + (box.w - w) / 2;
   }
 
   const round = (v) => Math.round(v * 1000) / 1000;
@@ -694,8 +754,20 @@ class OIDeckBuilder {
     this.templatePath = opts.templatePath || firstExisting(
       path.join(builderDir, "EOP Blank Template.pptx"), path.join(builderDir, "..", "EOP Blank Template.pptx"));
     this.templateLayouts = opts.templateLayouts !== false && fs.existsSync(this.templatePath);
+
+    // Title-slide background. "plain" is the DEFAULT on purpose, not by accident:
+    // the house front page is the white one -- right-aligned title block at y=2.25,
+    // full OI logo bottom-right -- and the template's photographic Intro layout is
+    // the thing you opt into. Changing this default changes every deck the package
+    // generates, so it is stated here rather than inferred from a falsy check.
+    // "white" is accepted as a synonym because that is what people call it.
+    this.introBackground = normalizeIntroBackground(opts.introBackground);
     // Layout name recorded per slide (slide creation order), consumed by the graft.
     this._layoutForSlide = [];
+    // Parallel to _layoutForSlide: whether that slide hides the layout's own drawn
+    // chrome. Pushed in _newSlide together with the layout name so the two arrays
+    // cannot drift and land the attribute on the wrong slide.
+    this._hideMasterSp = [];
 
     this.pptx = new pptxgen();
     this.pptx.layout = "LAYOUT_WIDE"; // 13.33" x 7.50"
@@ -783,9 +855,14 @@ class OIDeckBuilder {
   /**
    * Create a slide and record which template layout it should be grafted onto.
    * Slides are recorded in creation order, matching slide1..N in the written file.
+   *
+   * hideMasterSp strips that layout's own drawn chrome (teal rule, corner logo,
+   * photo band) from this slide alone. Recorded here, in lockstep with the layout
+   * name, so the two can never fall out of step.
    */
-  _newSlide(layoutName) {
+  _newSlide(layoutName, hideMasterSp = false) {
     this._layoutForSlide.push(layoutName);
+    this._hideMasterSp.push(hideMasterSp);
     return this.pptx.addSlide();
   }
 
@@ -853,7 +930,10 @@ class OIDeckBuilder {
 
   /** Add small OI logo to bottom-right corner (no-op when the layout supplies it). */
   addLogo(slide) {
-    if (this.templateLayouts) return; // logo is part of every template layout
+    // The layout supplies the corner logo on every slide that calls this. The plain
+    // title slide is the exception -- it hides the layout's shapes -- but it stamps
+    // its own full-size logo inline and never routes through here.
+    if (this.templateLayouts) return;
     if (this.logoSmallPath && fs.existsSync(this.logoSmallPath)) {
       const pos = this.theme.logoSmall;
       slide.addImage({
@@ -882,12 +962,23 @@ class OIDeckBuilder {
    * @param {string} [notice]
    */
   addTitleSlide(titleOrOpts, subtitle, date, notice) {
-    const slide = this._newSlide(LAYOUTS.INTRO);
     const T = this.theme, X = T.text, ib = T.introBox;
-
     const advanced = typeof titleOrOpts === "object" && titleOrOpts.textItems;
 
-    if (this.templateLayouts) {
+    // Plain is the default; the photographic Intro layout is opt-in. The plain
+    // slide still needs a layout to sit on -- the graft points every slide at one --
+    // so it borrows the leanest of them (T_NOSRC) and hides its drawn shapes, which
+    // leaves the master's white page and nothing else. Nothing is synthesized: the
+    // deck ships the template's own five layouts, unaltered.
+    //
+    // Without a template at all, templateLayouts is false, no graft runs, and the
+    // plain branch below already draws the whole page -- so that path is unchanged.
+    const useTemplateIntro = this.templateLayouts && this.introBackground === "photo";
+    const slide = useTemplateIntro
+      ? this._newSlide(LAYOUTS.INTRO)
+      : this._newSlide(LAYOUTS.T_NOSRC, true);
+
+    if (useTemplateIntro) {
       // Intro layout supplies the photo background + full OI logo band. Place the
       // title / subtitle / date+notice right-aligned inside that band, matching the
       // layout's center-title / subtitle / body placeholders.
@@ -920,7 +1011,12 @@ class OIDeckBuilder {
       return slide;
     }
 
-    // ── Legacy self-drawn title slide (no template) ───────────────────────────
+    // ── Plain title slide: drawn in full, on a white page (the default) ──────
+    // State the white explicitly instead of inheriting the master's schemeClr bg1.
+    // Hiding the layout's shapes does not touch a layout's own <p:bg>, so a future
+    // OI template that gives this layout a background would otherwise show through;
+    // a slide-level background wins over both layout and master.
+    slide.background = { color: "FFFFFF" };
     const textBox = ib.legacy;
     let textItems;
     if (advanced) {
@@ -932,7 +1028,14 @@ class OIDeckBuilder {
       const t = typeof titleOrOpts === "string" ? titleOrOpts : "";
       textItems = [{ text: t, options: { ...X.introTitle, breakLine: true } }];
       if (subtitle) textItems.push({ text: subtitle, options: { ...X.introTitle, fontSize: X.title.fontSize, bold: false, breakLine: true } });
-      if (date || notice) { textItems.push({ text: "", options: { fontSize: X.introMeta.fontSize, breakLine: true } }); textItems.push({ text: "", options: { fontSize: X.introMeta.fontSize, breakLine: true } }); }
+      // Gap between the subtitle and the date/notice block. The spacer runs carry a
+      // SPACE, not "": PptxGenJS drops fontSize on an empty run, so empty spacers
+      // inherit the 32pt title size and the meta block lands ~34pt too low.
+      if (date || notice) {
+        for (const pt of T.introBox.gap) {
+          textItems.push({ text: " ", options: { fontSize: pt, breakLine: true } });
+        }
+      }
       if (date) textItems.push({ text: date, options: { ...X.introMeta, breakLine: true } });
       if (notice) textItems.push({ text: notice, options: { ...X.introMeta } });
     }
@@ -968,7 +1071,7 @@ class OIDeckBuilder {
     const asset = this.resolveAsset(figPath);
 
     if (asset) {
-      const placement = containInBox(box, asset.aspect);
+      const placement = containInBox(box, asset.aspect, "middle", "left");
       slide.addImage({
         path: asset.path,
         x: placement.x, y: placement.y,
@@ -1496,7 +1599,11 @@ class OIDeckBuilder {
   // ── Save ─────────────────────────────────────────────────────────────────
 
   async save(outputPath) {
-    const out = outputPath || this.output;
+    // Resolve once, here: pptxgenjs joins a relative fileName against cwd, which is
+    // not necessarily where the caller meant. An absolute path survives untouched.
+    // injectSvgPreviews() and graftOntoTemplate() below are handed this same value,
+    // so all three act on the one real path.
+    const out = path.resolve(outputPath || this.output);
     await this.pptx.writeFile({ fileName: out });
     // Repair the broken PNG previews PptxGenJS leaves on Node-embedded SVGs so the
     // vector figures render in every viewer while staying ungroupable in PowerPoint.
@@ -1507,7 +1614,7 @@ class OIDeckBuilder {
     // correct named layout (inheriting the template's master, logo, teal underline,
     // source rule, theme, and embedded fonts).
     if (this.templateLayouts) {
-      await graftOntoTemplate(out, this.templatePath, this._layoutForSlide);
+      await graftOntoTemplate(out, this.templatePath, this._layoutForSlide, this._hideMasterSp);
     }
     console.log(`\nDone! ${this.pptx.slides.length} slides saved to:\n  ${out}`);
   }

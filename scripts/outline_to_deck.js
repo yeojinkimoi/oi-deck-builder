@@ -203,6 +203,41 @@ const FIGURE_TITLE_FORMATS = {
   },
 };
 
+// Values `- **Intro background**: ...` accepts, matching the builder's
+// introBackground option. Canonicalized here so the emitted deck.js carries a
+// value the builder will never reject.
+const INTRO_BACKGROUNDS = { plain: "plain", white: "plain", photo: "photo" };
+
+/**
+ * Resolve `- **Intro background**: plain|white|photo` into settings["intro background"].
+ *
+ * Validated here rather than in emitDeck because emitDeck runs after the error
+ * gate: a bad value has to be reported, not written into deck.js. House rule --
+ * a bad outline fails the build instead of rendering the wrong front page.
+ */
+function applyIntroBackground(model) {
+  const S = model.settings;
+
+  // Renamed while this was in flight. Say so, rather than ignoring the old key and
+  // handing back a plain deck to someone who asked for the photo.
+  if (S["intro style"] !== undefined) {
+    err(0, '**Intro style** was renamed -- use `- **Intro background**: photo` (or plain)');
+  }
+
+  const raw = S["intro background"];
+  if (raw === undefined || String(raw).trim() === "") {
+    S["intro background"] = "plain"; // the house default, stated not inferred
+    return;
+  }
+  const key = String(raw).trim().toLowerCase();
+  if (!INTRO_BACKGROUNDS[key]) {
+    err(0, `Intro background "${raw}" is not defined (have: ${Object.keys(INTRO_BACKGROUNDS).join(", ")})`);
+    S["intro background"] = "plain";
+    return;
+  }
+  S["intro background"] = INTRO_BACKGROUNDS[key];
+}
+
 function applyTitleFormats(model) {
   const S = model.settings;
   const ctx = {
@@ -272,10 +307,15 @@ function applyTitleFormats(model) {
  * Insert a provenance slide straight after the title slide, naming the
  * disclosure workbook the figures were actually built from.
  *
- * The filename comes from facts (oi_use_disclosure records source.workbook,
- * source.sheet, source.statistic, source.rows when it reads), not from
- * anything typed in the outline -- so it cannot go stale when the release
- * changes. Suppress with `- **Source slide**: no`.
+ * The filename comes from facts (oi_use_disclosure records source.workbook and
+ * source.sheet when it reads), not from anything typed in the outline -- so it
+ * cannot go stale when the release changes. Suppress with
+ * `- **Source slide**: no`.
+ *
+ * Workbook and sheet only. oi_use_disclosure also records source.statistic and
+ * source.rows, but those describe how the sheet was read, not where the deck
+ * came from, and they are not deck-facing. They stay in facts.json for an
+ * appendix slide to quote with {{source.statistic}} / {{source.rows}}.
  */
 function insertSourceSlide(model, facts) {
   const S = model.settings;
@@ -285,20 +325,13 @@ function insertSourceSlide(model, facts) {
   if (!wb) return; // nothing read, nothing to claim
 
   const sheet = facts["source.sheet"];
-  const stat = facts["source.statistic"];
-  const rows = facts["source.rows"];
 
   const bullets = [
     { indent: 0, text: "Figures in this deck are generated from:", line: 0 },
     { indent: 1, text: wb.rendered, line: 0 },
   ];
-  const detail = [
-    sheet ? `sheet: ${sheet.rendered}` : null,
-    stat ? `statistic: ${stat.rendered}` : null,
-    rows ? `${rows.rendered} rows` : null,
-  ].filter(Boolean);
-  if (detail.length) {
-    bullets.push({ indent: 1, text: detail.join("  ·  ") + " (small)", line: 0 });
+  if (sheet) {
+    bullets.push({ indent: 1, text: `sheet: ${sheet.rendered}`, line: 0 });
   }
 
   const slide = {
@@ -349,13 +382,23 @@ function emitDeck(model, opts) {
   L.push("const BASE = __dirname;");
   L.push("const cliOpts = parseArgs();");
   L.push("const FIG_DIR   = cliOpts.figDir   ?? " + q(opts.figDir) + ";");
-  L.push("const OUTPUT    = cliOpts.output   ?? path.join(BASE, " + q(opts.output) + ");");
+  // path.resolve, not path.join: an absolute --output has to survive as given,
+  // while a relative one still resolves against the deck directory. Resolved here,
+  // where the value is read, so save() and everything downstream of it
+  // (injectSvgPreviews, graftOntoTemplate) all see the same real path.
+  L.push("const OUTPUT    = path.resolve(BASE, cliOpts.output ?? " + q(opts.output) + ");");
   L.push("const CACHE_DIR = cliOpts.cacheDir ?? path.join(BASE, \".pptx_cache\");");
   L.push("");
   L.push("const deck = new OIDeckBuilder({");
   L.push("  figDir: FIG_DIR,");
   L.push("  output: OUTPUT,");
   L.push("  cacheDir: CACHE_DIR,");
+  // Plain white is the house default; `- **Intro background**: photo` opts into the
+  // OI template's Intro layout (photo background + logo band). Emitted only when it
+  // is not the default, so a deck.js stays as short as what the outline asked for.
+  if (settings["intro background"] === "photo") {
+    L.push("  introBackground: \"photo\",");
+  }
   L.push("});");
   L.push("");
   L.push("const fig = (name) => deck.fig(name);");
@@ -521,6 +564,7 @@ function main() {
   // Expand the named title conventions before facts are interpolated,
   // because format 2 produces {{fact}} placeholders of its own.
   applyTitleFormats(model);
+  applyIntroBackground(model);
   const figDir = path.resolve(
     deckDir,
     arg("--fig-dir", model.settings["figure directory"] || "figures")
