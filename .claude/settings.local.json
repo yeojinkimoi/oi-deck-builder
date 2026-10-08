@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(xargs grep:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(ls \"C:/Users/realj/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/beed3515-76fa-4cb7-a283-8242fd59536b/2a9a104c-68f0-4750-b7b7-e46ac5f30980/skills/pptx\")",
+      "Bash(python scripts/office/unpack.py \"C:/Users/realj/Documents/oi-slide/draft-figure-slides.pptx\" \"C:/Users/realj/AppData/Local/Temp/claude/C--Users-realj-Documents-oi-slide/c5be4ac8-8ada-4cfa-857d-a2a178debfcb/scratchpad/draft_unpacked/\")",
+      "Bash(rm -rf draft_unpacked)",
+      "Bash(python -c \"import zipfile; zipfile.ZipFile\\(r'C:/Users/realj/Documents/oi-slide/draft-figure-slides.pptx'\\).extractall\\('draft_unpacked'\\)\")",
+      "Bash(cd \"C:/Users/realj/AppData/Local/Temp/claude/C--Users-realj-Documents-oi-slide/c5be4ac8-8ada-4cfa-857d-a2a178debfcb/scratchpad\" && ls -la draft_unpacked/ppt/media/ && echo \"--- sizes of real figs ---\" && ls -la \"C:/Users/realj/Opportunity Insights Dropbox/Opportunity Insights Shared Workspace/Research files/outside/workforce_training/Slides/SOO-2026/figures/\")",
+      "Bash(python -)"
     ]
   }
 }

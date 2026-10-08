@@ -58,8 +58,35 @@ new OIDeckBuilder({
   logoTitle: "...",          // optional: override title slide logo
   author: "...",             // optional: metadata
   company: "...",            // optional: metadata
+  stylePreset: "guide2025",  // optional: named preset (official OI style-guide values)
+  theme: { ... },            // optional: partial theme deep-merged onto defaults
 })
 ```
+
+### Theme overrides and style presets
+
+All styling lives in one `theme` object (exported from `oi_deck_builder.js`): `theme.text`
+has one entry per text role (title, subtitle, panelTitle, bullet, subBullet, source,
+footnote, intro*), `theme.layout` has layout constants (panelTitleH, richTextBox,
+footnoteY, paraSpaceAfter, line weights), plus `figBox`, `table`, `titleBar`,
+`subtitleBar`, `introBox`, etc.
+
+Per-deck adjustments deep-merge onto the defaults — this is how style edit requests
+("move the subtitle up", "smaller subtitle font") should be implemented:
+
+```js
+new OIDeckBuilder({
+  theme: {
+    text: { subtitle: { fontSize: 14 } },   // change a text role
+    subtitleBar: { y: 0.85 },               // move the subtitle box
+    layout: { richTextBox: { y: 1.6 } },    // move bullet text down
+  },
+})
+```
+
+`stylePreset: "guide2025"` applies the official OI EOP Style Guide values where the
+historical defaults deviate (panel titles Lucida Bright 16 bold; bullets Lucida Sans;
+table cells 16pt; 0.5 line weights). Explicit `theme` overrides win over the preset.
 
 ### `deck.fig(name)`
 
@@ -212,7 +239,7 @@ In the full format, these defaults are applied if not specified:
 
 Optional `opts`:
 - `opts.subtitle` -- subtitle text
-- `opts.textBox` -- override `{x, y, w, h}` (default: `{x: 0.6713, y: 1.46, w: 12.2718, h: 4.75}`)
+- `opts.textBox` -- override `{x, y, w, h}` (default: `{x: 0.586, y: 1.46, w: 11.961, h: 4.75}`)
 
 ---
 

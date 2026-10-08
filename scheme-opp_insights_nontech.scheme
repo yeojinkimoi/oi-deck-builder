@@ -1,0 +1,66 @@
+* ------------------------------------------------------------------------------
+* Purpose: Define a scheme for the race trends slides figure
+* Created: Nico Rotundo 2024-06-27
+* ------------------------------------------------------------------------------
+
+#include s2color
+
+* background color
+color 			background		white
+
+* graph size
+graphsize 		y 			5
+graphsize 		x 			8
+
+* grid options 
+yesno 			draw_major_vgrid 	no
+yesno 			draw_major_hgrid 	no
+
+* legend options
+linestyle  		legend			none
+
+* order of colors
+color 			p1			"41 182 164"  	  // black white gap
+color 			p2			"250 165 35"  	  // class gap
+color 			p3			"0 58 79" 	      // p25 white
+color 			p4			"133 198 255" 	  // p75 white
+color 			p5			"167 29 49"	      // p25 black
+color 			p6			"19 83 75"   	  // bw gap but darker
+color 			p7			"180 109 4"       // class gap but darker
+color 			p8			"234 133 148"     // p75 black
+color 			p9			"255 212 0"
+color 			p10			"107 189 69"
+color       	p11         "41 182 164*0.50" // 1978 white
+color      		p12       	"229 64 96*0.50"  // 1978 black
+color       	p13       	"0 58 79" 	      // 1992 white
+color       	p14       	"229 64 96" 	  // 1992 black
+
+* title options
+gsize 			heading 		vhuge
+
+* axis options
+color 			axis_title 		black
+gsize 			axis_title 		3.7
+color  			axisline		black
+gsize 			axis_title_gap	tiny
+linewidth 		axisline		vthin
+
+* symbols
+symbolsize  	p 			    medsmall
+linewidth		p			    medthick
+
+* tick options
+color  			tick 			black
+color  			minortick 		black
+color  			tick_label     	black
+gsize  			tick_label		3.7
+anglestyle  	vertical_tick 	0
+linewidth		tick			vthin
+linewidth		minortick		vthin
+
+* text options
+color			text_option		black
+
+color         	key_label 		black
+
+margin 			graph			"2 2 5 7"

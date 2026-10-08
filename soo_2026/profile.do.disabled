@@ -1,0 +1,15 @@
+*------------------------------------------------------------
+* profile.do
+* Runs automatically whenever Stata starts
+*------------------------------------------------------------
+
+version 19
+
+set scheme opp_insights_nontech
+graph set svg fontface "Lucida Sans"
+
+global dropbox "C:\Users\realj\Opportunity Insights Dropbox\Opportunity Insights Shared Workspace\Research files"
+global wf_github "C:\Users\realj\Documents\workforce-training"
+
+display "profile.do loaded"
+

@@ -1,0 +1,30 @@
+meta:
+  date: 2026-07-09
+  source: email
+  requester: Raj
+  deck: decks/demo_ml/deck.js
+
+edits:
+  - id: e1
+    slide: 3
+    target: subtitle
+    action: reword
+    detail: replace "Toy example" with "Illustrative example"
+    proposed: { text: "Illustrative example: predicting a child's adult income" }
+    scope: content
+    status: applied
+    applied_in: demo_ml rebuild 2026-07-09
+    question: null
+    verbatim: "don't say toy example, say illustrative"
+
+  - id: e2
+    slide: all
+    target: theme
+    action: move
+    detail: move slide subtitles up slightly
+    proposed: { theme: { subtitleBar: { y: 0.74 } } }
+    scope: deck
+    status: applied
+    applied_in: demo_ml rebuild 2026-07-09
+    question: null
+    verbatim: "subtitles feel a bit low across the deck, nudge them up"

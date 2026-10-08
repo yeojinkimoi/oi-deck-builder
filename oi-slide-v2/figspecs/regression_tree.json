@@ -1,0 +1,26 @@
+{
+  "canvas": { "w": 11, "h": 5.2 },
+  "defaults": { "fontFace": "Lucida Sans", "fontSize": 13, "color": "DARK_TEXT", "lineColor": "LINE_GRAY", "lineWidth": 1 },
+  "shapes": [
+    { "type": "diamond", "x": 4.2, "y": 0.1, "w": 2.6, "h": 1.0, "text": "Parent income\n< $50k?", "fill": "FFFFFF", "line": { "color": "NAVY", "width": 1 }, "fontSize": 12, "bold": true },
+
+    { "type": "arrow", "x1": 5.0, "y1": 1.05, "x2": 2.4, "y2": 2.0, "label": "Yes", "labelDy": -0.18, "labelSize": 12 },
+    { "type": "arrow", "x1": 6.0, "y1": 1.05, "x2": 8.6, "y2": 2.0, "label": "No", "labelDy": -0.18, "labelSize": 12 },
+
+    { "type": "diamond", "x": 0.9, "y": 2.0, "w": 2.6, "h": 1.0, "text": "First-generation\nstudent?", "fill": "FFFFFF", "line": { "color": "NAVY", "width": 1 }, "fontSize": 12, "bold": true },
+    { "type": "diamond", "x": 7.5, "y": 2.0, "w": 2.6, "h": 1.0, "text": "Parent income\n< $100k?", "fill": "FFFFFF", "line": { "color": "NAVY", "width": 1 }, "fontSize": 12, "bold": true },
+
+    { "type": "arrow", "x1": 1.8, "y1": 2.95, "x2": 1.1, "y2": 3.85, "label": "Yes", "labelDx": -0.35, "labelSize": 12 },
+    { "type": "arrow", "x1": 2.6, "y1": 2.95, "x2": 3.5, "y2": 3.85, "label": "No", "labelDx": 0.35, "labelSize": 12 },
+    { "type": "arrow", "x1": 8.4, "y1": 2.95, "x2": 7.7, "y2": 3.85, "label": "Yes", "labelDx": -0.35, "labelSize": 12 },
+    { "type": "arrow", "x1": 9.2, "y1": 2.95, "x2": 10.0, "y2": 3.85, "label": "No", "labelDx": 0.35, "labelSize": 12 },
+
+    { "type": "rect", "rounded": true, "x": 0.2,  "y": 3.85, "w": 1.8, "h": 0.7, "text": "ŷ = $32k", "fill": "OI_GREEN", "color": "FFFFFF", "bold": true, "line": null },
+    { "type": "rect", "rounded": true, "x": 2.6,  "y": 3.85, "w": 1.8, "h": 0.7, "text": "ŷ = $41k", "fill": "OI_GREEN", "color": "FFFFFF", "bold": true, "line": null },
+    { "type": "rect", "rounded": true, "x": 6.8,  "y": 3.85, "w": 1.8, "h": 0.7, "text": "ŷ = $54k", "fill": "OI_GREEN", "color": "FFFFFF", "bold": true, "line": null },
+    { "type": "rect", "rounded": true, "x": 9.1,  "y": 3.85, "w": 1.8, "h": 0.7, "text": "ŷ = $68k", "fill": "OI_GREEN", "color": "FFFFFF", "bold": true, "line": null },
+
+    { "type": "text", "x": 0, "y": 4.75, "w": 11, "h": 0.4, "italic": true, "fontSize": 12, "color": "SUBTITLE_GRAY",
+      "text": "Each split picks the variable and threshold that most reduce prediction error; each leaf predicts the average outcome (here: child income at age 30) for observations in that region." }
+  ]
+}

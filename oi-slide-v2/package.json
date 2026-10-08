@@ -1,0 +1,19 @@
+{
+  "name": "oi-slide-v2",
+  "version": "2.0.0",
+  "description": "Opportunity Insights slide deck builder — agent-assisted pipeline (theme presets, editable shape diagrams, edit-request workflow, style checker)",
+  "main": "oi_deck_builder.js",
+  "scripts": {
+    "build:demo": "node decks/demo_ml/deck.js",
+    "check": "node scripts/check_style.js",
+    "comments": "node scripts/extract_pptx_comments.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "pptxgenjs": "4.0.1",
+    "@resvg/resvg-js": "2.6.2",
+    "jszip": "3.10.1"
+  }
+}

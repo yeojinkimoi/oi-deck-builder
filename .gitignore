@@ -1,0 +1,15 @@
+# Dependencies — restore with `npm ci`, never commit.
+node_modules/
+
+# Rasterized SVG previews. Regenerated on demand by resolveFigure();
+# keyed on basename, so a stale cache is worse than no cache.
+.pptx_cache/
+
+# Office lock files and Stata swap/log noise
+~$*
+*.stswp
+*.log
+
+# OS cruft
+.DS_Store
+Thumbs.db
