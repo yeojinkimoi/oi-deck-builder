@@ -106,6 +106,9 @@ foreach pn of local panels {
                  (pci `base_val' 2 `vtop' 2,                                  ///
                       lcolor(black) lpattern(shortdash) lwidth(vthin))
 
+    * If your two markers sit only one x-unit apart (a one-year program), the
+    * centred labels collide -- add placement(w)/justification(right) to the
+    * first and placement(e)/justification(left) to the second.
     local vtext  text(`ttop' 0 "Enrollment", color(black) size(small))        ///
                  text(`ttop' 2 "Graduation", color(black) size(small))
 
