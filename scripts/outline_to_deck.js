@@ -230,7 +230,10 @@ function applyIntroBackground(model) {
     return;
   }
   const key = String(raw).trim().toLowerCase();
-  if (!INTRO_BACKGROUNDS[key]) {
+  // hasOwnProperty, not a bare lookup: "constructor" and "tostring" are truthy on
+  // any plain object, so a bare lookup waves them through and the deck renders the
+  // default front page -- the silent wrong-page failure this gate exists to stop.
+  if (!Object.prototype.hasOwnProperty.call(INTRO_BACKGROUNDS, key)) {
     err(0, `Intro background "${raw}" is not defined (have: ${Object.keys(INTRO_BACKGROUNDS).join(", ")})`);
     S["intro background"] = "plain";
     return;

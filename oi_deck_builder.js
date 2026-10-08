@@ -179,7 +179,10 @@ const INTRO_BACKGROUNDS = { plain: "plain", white: "plain", photo: "photo" };
 function normalizeIntroBackground(value) {
   if (value === undefined || value === null || value === "") return "plain";
   const key = String(value).trim().toLowerCase();
-  if (INTRO_BACKGROUNDS[key]) return INTRO_BACKGROUNDS[key];
+  // hasOwnProperty, not a bare lookup: "constructor" and "tostring" are truthy on
+  // any plain object, so a bare lookup would accept them and then quietly render
+  // plain -- exactly the silent-wrong-page failure this function exists to prevent.
+  if (Object.prototype.hasOwnProperty.call(INTRO_BACKGROUNDS, key)) return INTRO_BACKGROUNDS[key];
   throw new Error(
     `introBackground: unknown value ${JSON.stringify(value)}. ` +
       `Valid values: ${Object.keys(INTRO_BACKGROUNDS).join(", ")} ` +
@@ -973,7 +976,19 @@ class OIDeckBuilder {
     //
     // Without a template at all, templateLayouts is false, no graft runs, and the
     // plain branch below already draws the whole page -- so that path is unchanged.
+    // Asking for the photo then cannot be honoured: the photograph lives in the
+    // template. Say so rather than shipping the wrong front page in silence; this
+    // warns instead of throwing, because the no-template path is the documented
+    // fallback for a missing template and must keep building.
     const useTemplateIntro = this.templateLayouts && this.introBackground === "photo";
+    if (this.introBackground === "photo" && !this.templateLayouts) {
+      console.warn(
+        `  introBackground "photo" needs the OI template, which was not found at
+` +
+          `  ${this.templatePath}
+  -- the title slide falls back to the plain front page.`
+      );
+    }
     const slide = useTemplateIntro
       ? this._newSlide(LAYOUTS.INTRO)
       : this._newSlide(LAYOUTS.T_NOSRC, true);

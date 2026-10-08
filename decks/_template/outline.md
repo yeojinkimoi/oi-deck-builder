@@ -29,11 +29,13 @@ slide reads as noise. Turn it on with `- **Show effect**: yes`, or per slide
 with `- **Fact**: <key>`.
 
 Optional, with these defaults:
-    Cohort      = Graduate        (per-slide **Cohort** overrides this)
-    Comparison  = Digital Twins
-    Show effect = no
-    Effect word = Increase
-    Effect fact = te_yr5          (key prefix; panel comes from the figure name)
+    Cohort           = Graduate        (per-slide **Cohort** overrides this)
+    Comparison       = Digital Twins
+    Show effect      = no
+    Effect word      = Increase
+    Effect fact      = te_yr5          (key prefix; panel comes from the figure name)
+    Intro background = plain           (the white front page; `photo` opts into
+                                        the template's photographic Intro layout)
 
 To override, add `- **Title**:` and `- **Subtitle**:` here; an explicit value
 always wins over the format. Leave them out to let format 1 write them.
