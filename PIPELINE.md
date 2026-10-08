@@ -129,6 +129,39 @@ copied from the slide above and never updated.
 Missing figures fail the build. Pass `--draft` to skip those slides and get a
 report instead.
 
+## The data-source slide
+
+A provenance slide is inserted automatically straight after the title slide:
+
+```
+Data Source
+  Figures in this deck are generated from:
+    sep2026_for_release_T13_T26.xlsx
+    sheet: tstc_es  ·  statistic: mean  ·  102 rows
+```
+
+The filename comes from **what the reader actually read**, not from anything
+typed in the outline — `oi_use_disclosure` records `source.workbook`,
+`source.sheet`, `source.statistic` and `source.rows` as facts on every run. A
+deck therefore cannot name a release it was not built from.
+
+Suppress it with `- **Source slide**: no`, or retitle it with
+`- **Source slide title**: Data and Disclosure`.
+
+**If your deck reads the disclosure in a separate step** (a `clean` step that
+writes a `.dta`, as TSTC does), that step runs in its own Stata session, so it
+has to write the provenance out itself:
+
+```stata
+oi_facts_clear
+oi_use_disclosure using "...", sheet(...)
+oi_facts_save using "${figures}/facts_source.json", replace
+```
+
+The deck builder merges every `facts*.json` in the figure directory, so it
+joins up with the facts the figures step writes. Decks that read the
+disclosure directly in `figures.do` — the template default — get this for free.
+
 ## Title formats
 
 Numbered conventions, chosen once in Deck Settings, so a per-program deck does

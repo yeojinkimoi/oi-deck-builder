@@ -40,6 +40,9 @@ always wins over the format. Leave them out to let format 1 write them.
 
 - **Date**: Month Year
 - **Notice**: PRELIMINARY DATA -- DO NOT CITE
+# A "Data Source" slide naming the disclosure workbook is inserted after the
+# title slide automatically, from what oi_use_disclosure actually read.
+# Turn it off with:  - **Source slide**: no
 - **Figure directory**: ./figures
 - **Output**: ./MyDeck.pptx
 

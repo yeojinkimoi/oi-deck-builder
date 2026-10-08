@@ -268,6 +268,52 @@ function applyTitleFormats(model) {
   }
 }
 
+/**
+ * Insert a provenance slide straight after the title slide, naming the
+ * disclosure workbook the figures were actually built from.
+ *
+ * The filename comes from facts (oi_use_disclosure records source.workbook,
+ * source.sheet, source.statistic, source.rows when it reads), not from
+ * anything typed in the outline -- so it cannot go stale when the release
+ * changes. Suppress with `- **Source slide**: no`.
+ */
+function insertSourceSlide(model, facts) {
+  const S = model.settings;
+  if (/^(no|false|0)$/i.test(String(S["source slide"] || ""))) return;
+
+  const wb = facts["source.workbook"];
+  if (!wb) return; // nothing read, nothing to claim
+
+  const sheet = facts["source.sheet"];
+  const stat = facts["source.statistic"];
+  const rows = facts["source.rows"];
+
+  const bullets = [
+    { indent: 0, text: "Figures in this deck are generated from:", line: 0 },
+    { indent: 1, text: wb.rendered, line: 0 },
+  ];
+  const detail = [
+    sheet ? `sheet: ${sheet.rendered}` : null,
+    stat ? `statistic: ${stat.rendered}` : null,
+    rows ? `${rows.rendered} rows` : null,
+  ].filter(Boolean);
+  if (detail.length) {
+    bullets.push({ indent: 1, text: detail.join("  ·  ") + " (small)", line: 0 });
+  }
+
+  const slide = {
+    type: "TEXT",
+    title: S["source slide title"] || "Data Source",
+    fields: {},
+    bullets,
+    line: 0,
+    _generated: true,
+  };
+
+  const i = model.slides.findIndex((s) => s.type === "TITLE SLIDE");
+  model.slides.splice(i < 0 ? 0 : i + 1, 0, slide);
+}
+
 // ------------------------------------------------------------------ figures
 
 function figExists(figDir, name) {
@@ -494,6 +540,9 @@ function main() {
     }
     s.bullets = s.bullets.map((b) => ({ ...b, text: walk(b.text, b.line) }));
   }
+
+  // ---- provenance slide, from what the reader actually read
+  insertSourceSlide(model, facts);
 
   // ---- validate figures referenced actually exist
   for (const s of model.slides) {
