@@ -22,12 +22,18 @@ FORMAT 1 (the front slide)
 
 FORMAT 2 (one figure per program/panel)
     Impact of {Program} on Earnings: {Panel}
-    {Program} Enrollees who {Cohort} vs. {Comparison} -- {{fact}} {Effect word}
+    {Program} Enrollees who {Cohort} vs. {Comparison}
+
+The year-5 effect is NOT in the subtitle by default -- the same number on every
+slide reads as noise. Turn it on with `- **Show effect**: yes`, or per slide
+with `- **Fact**: <key>`.
 
 Optional, with these defaults:
+    Cohort      = Graduate        (per-slide **Cohort** overrides this)
     Comparison  = Digital Twins
+    Show effect = no
     Effect word = Increase
-    Effect fact = te_yr5      (key prefix; the panel comes from the figure name)
+    Effect fact = te_yr5          (key prefix; panel comes from the figure name)
 
 To override, add `- **Title**:` and `- **Subtitle**:` here; an explicit value
 always wins over the format. Leave them out to let format 1 write them.
@@ -53,10 +59,12 @@ always wins over the format. Leave them out to let format 1 write them.
 - **Figure**: my_panel_event_study
 - **Notes**: Speaker notes.
 
-Title and subtitle come from format 2. Cohort defaults to "Graduate" --
-override per slide with `- **Cohort**: Leave`. The fact key is derived from
-the figure name (minus _event_study); set `- **Fact**: none` to omit the
-number, or name a different key.
+Title and subtitle come from format 2. No year-5 effect in the subtitle unless
+you ask for one.
+
+Build ONE slide per panel. A combined multi-panel slide or a summary table is
+something to add deliberately, not by default -- the 2/3/4-FIGURE and TABLE
+examples below are there when you want them, not as a pattern to follow.
 
 ### Slide 3b — 1-FIGURE: A Hand-Written Title Instead
 - **Subtitle**: Written out, so format 2 leaves this slide alone

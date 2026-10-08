@@ -143,7 +143,7 @@ not retype the same sentence on every slide:
 | | renders |
 |---|---|
 | **1** front slide | `The Impacts of TSTC Programs on Earnings` / `Preliminary Estimates Using Digital Twins` |
-| **2** figure slide | `Impact of TSTC on Earnings: {Panel}` / `TSTC Enrollees who {Cohort} vs. Digital Twins -- {{fact}} Increase` |
+| **2** figure slide | `Impact of TSTC on Earnings: {Panel}` / `TSTC Enrollees who {Cohort} vs. Digital Twins` |
 
 A figure slide then supplies only what varies:
 
@@ -153,14 +153,22 @@ A figure slide then supplies only what varies:
 - **Figure**: cert_construction_graduate_event_study
 ```
 
-`Cohort` defaults to `Graduate`; override it per slide (`- **Cohort**: Leave`).
-The fact key is derived from the figure name — `cert_construction_graduate_event_study`
-becomes `te_yr5.cert_construction_graduate` — so the number on the slide is
-still read, never typed. `- **Fact**: none` omits it.
+`Cohort` defaults to `Graduate` and can be set deck-wide or per slide
+(`- **Cohort**: Leave`).
 
-Overridable defaults: `Comparison` (Digital Twins), `Effect word` (Increase),
-`Effect fact` (te_yr5). An explicit `Title:` or `Subtitle:` always wins, so a
-one-off slide just writes them out.
+**The year-5 effect is not in the subtitle by default.** The same number on
+every slide reads as noise. Turn it on deck-wide with `- **Show effect**: yes`
+or per slide with `- **Fact**: <key>`; the key is then derived from the figure
+name — `cert_construction_graduate_event_study` becomes
+`te_yr5.cert_construction_graduate` — so it is still read from facts.json,
+never typed.
+
+Overridable defaults: `Cohort` (Graduate), `Comparison` (Digital Twins),
+`Show effect` (no), `Effect word` (Increase), `Effect fact` (te_yr5). An
+explicit `Title:` or `Subtitle:` always wins.
+
+**One slide per panel.** A combined multi-panel slide or a summary table is
+something to add deliberately, when asked for — not a default.
 
 ## Facts: no number typed twice
 

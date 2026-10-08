@@ -171,7 +171,11 @@ function interpolate(str, facts, line) {
  *
  * FORMAT 2 — one figure per program/panel
  *     Impact of {Program} on Earnings: {Panel}
- *     {Program} Enrollees who {Cohort} vs. {Comparison} -- {{fact}} {Effect word}
+ *     {Program} Enrollees who {Cohort} vs. {Comparison}
+ *
+ * The year-5 effect is deliberately NOT appended -- the same number on every
+ * subtitle reads as noise. Add it with `- **Show effect**: yes` at deck level
+ * or `- **Fact**: <key>` on one slide.
  *
  * A slide supplies only what varies:
  *
@@ -207,6 +211,7 @@ function applyTitleFormats(model) {
     effectWord: S["effect word"] || "Increase",
   };
   const factPrefix = S["effect fact"] || "te_yr5";
+  const showEffect = /^(yes|true|1)$/i.test(String(S["show effect"] || ""));
 
   // ---- format 1: the front slide
   const tf = S["title format"];
@@ -242,15 +247,22 @@ function applyTitleFormats(model) {
       continue;
     }
 
-    // derive the fact key from the figure name unless given one
+    // The year-5 effect is NOT in the subtitle by default -- repeating it on
+    // every slide is noise. Opt in per deck with `- **Show effect**: yes`, or
+    // per slide with `- **Fact**: <key>`.
     let fact = sl.fields.fact;
     if (fact === undefined) {
-      const figName = splitFig(sl.fields.figure || sl.fields.left || "").name;
-      if (figName) fact = `${factPrefix}.${figName.replace(/_event_study$/, "")}`;
+      fact = showEffect
+        ? (() => {
+            const figName = splitFig(sl.fields.figure || sl.fields.left || "").name;
+            return figName ? `${factPrefix}.${figName.replace(/_event_study$/, "")}` : null;
+          })()
+        : null;
     }
-    if (fact === "none" || fact === "") fact = null;
+    if (fact === "none" || fact === "" || fact === "no") fact = null;
 
-    const f = { panel, cohort: sl.fields.cohort || "Graduate", fact };
+    // Cohort: per-slide wins, then the deck-level default, then "Graduate".
+    const f = { panel, cohort: sl.fields.cohort || S.cohort || "Graduate", fact };
     if (!hasTitle) sl.title = fmt.title(ctx, f);
     if (!hasSub) sl.fields.subtitle = fmt.subtitle(ctx, f);
   }
