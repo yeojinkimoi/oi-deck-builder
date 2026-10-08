@@ -101,14 +101,16 @@ foreach pn of local panels {
     * Event markers. The labels are per-deck vocabulary -- entry/completion,
     * enrollment/graduation, entry/exit -- so they live here rather than being
     * baked into a shared program.
+    *
+    * Keep them SHORT. On a one-year program the two markers sit a single
+    * x-unit apart and long centred labels run together: "Enrollment" and
+    * "Completion" read as one phrase, while "Entry" and "Completion" do not.
+    * Shortening the word is better than nudging the label off its own line.
     local vlines (pci `base_val' 0 `vtop' 0,                                  ///
                       lcolor(black) lpattern(shortdash) lwidth(vthin))        ///
                  (pci `base_val' 2 `vtop' 2,                                  ///
                       lcolor(black) lpattern(shortdash) lwidth(vthin))
 
-    * If your two markers sit only one x-unit apart (a one-year program), the
-    * centred labels collide -- add placement(w)/justification(right) to the
-    * first and placement(e)/justification(left) to the second.
     local vtext  text(`ttop' 0 "Enrollment", color(black) size(small))        ///
                  text(`ttop' 2 "Graduation", color(black) size(small))
 
