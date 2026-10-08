@@ -44,9 +44,16 @@ oi_facts_clear
 **# Data
 * =================================================================
 
-oi_use_disclosure using "${disclosure}/<release>.xlsx", sheet(<sheet>)
+* EDIT THESE TWO. The reader infers keys/series/index from the sheet and
+* prints what it found -- read that output on the first run.
+local release "sep2026/CHANGE_ME.xlsx"
+local sheet   "CHANGE_ME"
 
-* Deck-specific fixups go here, never in the shared reader.
+oi_use_disclosure using "${disclosure}/`release'", sheet(`sheet')
+
+* Deck-specific fixups go here, never in the shared reader. For example:
+*     replace degree = "AAS" if degree == "ALL"
+*     replace panel  = ustrregexra(lower(degree + "_" + sector), "[^a-z0-9]+", "_")
 
 
 **# Shared options

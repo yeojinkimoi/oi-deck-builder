@@ -1,4 +1,4 @@
-# MY_DECK — disclosure xlsx -> clean -> figures + facts -> pptx
+# MY_DECK — disclosure xlsx -> figures + facts -> pptx
 #
 # Everything this deck needs lives in this folder. From here:
 #
@@ -9,7 +9,11 @@
 #   oi-deck lint             parse outline.md, build nothing
 #   oi-deck check            style-check the built deck
 #
-# Paths are relative to this folder, so nothing points back at wherever
+# EDIT BEFORE FIRST RUN:
+#   1. the disclosure filename in the `figures` step's `in:` list
+#   2. the sheet name in code/figures.do
+#
+# Paths are relative to this folder, so nothing points at wherever
 # oi-deck-builder is installed. Edges are inferred from the in/out lists --
 # there is no separate `needs:` to keep in sync. A step reruns when an output
 # is missing, an input is newer than an output, or a step it depends on reran.
@@ -25,18 +29,14 @@
 deck: my_deck
 
 steps:
-  - id: clean
-    run: stata code/prepare_data.do
-    in:
-      - ../../Disclosures/sep2026/<release>.xlsx
-      - code/prepare_data.do
-    out:
-      - data/panel.dta
-
+  # figures.do reads the disclosure directly -- oi_use_disclosure infers the
+  # schema, so there is usually no separate cleaning step. Add one (writing a
+  # .dta that figures.do then reads) only if you need deck-specific recodes or
+  # the read is slow enough to be worth caching.
   - id: figures
     run: stata code/figures.do
     in:
-      - data/panel.dta
+      - ../../Disclosures/sep2026/CHANGE_ME.xlsx
       - code/figures.do
     out:
       - figures/*.svg

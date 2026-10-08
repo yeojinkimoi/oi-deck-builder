@@ -137,11 +137,14 @@ function runStata(doFile, cwd, extraArgs) {
   const abs = path.resolve(cwd, doFile);
   if (!fs.existsSync(abs)) die(`do-file not found: ${abs}`);
 
-  const logPath = abs.replace(/\.do$/i, ".log");
+  // Run from the DECK folder, not the do-file's folder, so a relative path in
+  // the do-file ("figures", "data") means what the pipeline.yaml means by it.
+  // Stata -e writes <basename>.log into the working directory.
+  const logPath = path.join(cwd, path.basename(abs).replace(/\.do$/i, ".log"));
   try { fs.unlinkSync(logPath); } catch {}
 
   const res = spawnSync(stata, ["-e", "do", abs, ...extraArgs], {
-    cwd: path.dirname(abs),
+    cwd,
     stdio: "inherit",
     windowsHide: true,
   });
