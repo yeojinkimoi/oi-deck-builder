@@ -33,6 +33,11 @@ do "${workforce_github}/ado/oi_setup.do"
 global figures "figures"
 global data    "data"
 
+* Created here, not left to the runner: running this do-file directly (rather
+* than through `oi-deck run`) must still work.
+cap mkdir "${figures}"
+cap mkdir "${data}"
+
 * While iterating on a shared ado, -discard- forces Stata to reload it.
 * Without this you will edit an .ado, rerun, and keep getting the old
 * behaviour for about an hour before working out why.
@@ -58,20 +63,8 @@ oi_use_disclosure using "${disclosure}/`release'", sheet(`sheet')
 
 **# Shared options
 * =================================================================
-* ONE global y range across every panel, computed BEFORE any plotting, so
-* consecutive slides do not shift. This is the Type 2 anti-jitter rule.
-
-egen max_mean = rowmax(value_*)
-generate_clean_axis max_mean year_relative, ystep(10000) yzero
-
-local ymin     = r(ymin)
-local ymax     = r(ymax)
-local ystep    = r(ystep)
-local base_val = r(ymin_range)
-local vtop     = 0.94 * `ymax'
-local ttop     = 0.97 * `ymax'
-
-dollar_labs ylabs `ymin' `ymax' `ystep'
+* Everything here is independent of the y range. The y range is computed
+* PER PANEL inside the loop below -- see the note there.
 
 local common_opts xlabel(-5(1)5, labcolor(black) tlcolor(gs10) tlwidth(vthin)) ///
                   xscale(lcolor(gs10) lwidth(vthin))                          ///
@@ -79,16 +72,38 @@ local common_opts xlabel(-5(1)5, labcolor(black) tlcolor(gs10) tlwidth(vthin)) /
                   ytitle("Mean W-2 Wage Earnings", color(black) margin(r+1))   ///
                   plotregion(margin(b=0 r+2)) xsize(17) ysize(9)
 
-local plotopts  `common_opts'                                                 ///
-                ylabel(`ylabs', nogrid labcolor(black)                        ///
-                       tlcolor(gs10) tlwidth(vthin))                          ///
-                yscale(lcolor(gs10) lwidth(vthin) range(`base_val' `ymax'))
-
 * Base/cols split so a 4-series figure can ask for 2 columns without
 * respecifying the rest.
 local legend_base position(11) ring(0) color(black) size(22pt) ///
                   bmargin(t-3) rowgap(small)
 local legend_opts `legend_base' cols(1)
+
+
+**# One y axis per panel, or one shared across all of them?
+* =================================================================
+* DEFAULT (0) -- each panel gets its OWN y range, floored at zero. A panel
+* whose earnings top out at $30K then fills its own axis rather than being
+* flattened by whichever panel in the deck happens to be biggest. Because
+* generate_clean_axis floors at zero, every panel still shares a baseline,
+* so the bar heights stay honest even though the tops differ.
+*
+* Set to 1 for ONE range shared by every panel. Consecutive slides then never
+* shift their axis at all, which is what you want when the audience is being
+* asked to compare panels against each other directly. The cost is that a
+* panel a third the size of the largest reads as flat. Ask for this
+* deliberately; it is not the default.
+
+local shared_yaxis 0
+
+egen max_mean = rowmax(value_*)
+
+if `shared_yaxis' {
+    generate_clean_axis max_mean year_relative, ystep(10000)
+    local sh_ymin  = r(ymin)
+    local sh_ymax  = r(ymax)
+    local sh_ystep = r(ystep)
+    local sh_base  = r(ymin_range)
+}
 
 
 **# One panel per group
@@ -98,25 +113,56 @@ levelsof panel, local(panels)
 
 foreach pn of local panels {
 
-    * Event markers. The labels are per-deck vocabulary -- entry/completion,
-    * enrollment/graduation, entry/exit -- so they live here rather than being
-    * baked into a shared program.
-    *
-    * Keep them SHORT. On a one-year program the two markers sit a single
-    * x-unit apart and long centred labels run together: "Enrollment" and
-    * "Completion" read as one phrase, while "Entry" and "Completion" do not.
-    * Shortening the word is better than nudging the label off its own line.
-    local vlines (pci `base_val' 0 `vtop' 0,                                  ///
-                      lcolor(black) lpattern(shortdash) lwidth(vthin))        ///
-                 (pci `base_val' 2 `vtop' 2,                                  ///
-                      lcolor(black) lpattern(shortdash) lwidth(vthin))
-
-    local vtext  text(`ttop' 0 "Enrollment", color(black) size(small))        ///
-                 text(`ttop' 2 "Graduation", color(black) size(small))
-
     preserve
         keep if panel == "`pn'"
         sort year_relative
+
+        * ---- this panel's y range ---------------------------------------
+        * Computed from this panel's rows only, unless shared_yaxis asked for
+        * the deck-wide one above. No -yzero- needed: inclusion of zero is
+        * now generate_clean_axis's default (pass -noyzero- to opt out, for a
+        * y that is an effect or a difference rather than a level).
+        if `shared_yaxis' {
+            local ymin     = `sh_ymin'
+            local ymax     = `sh_ymax'
+            local ystep    = `sh_ystep'
+            local base_val = `sh_base'
+        }
+        else {
+            generate_clean_axis max_mean year_relative, ystep(10000)
+            local ymin     = r(ymin)
+            local ymax     = r(ymax)
+            local ystep    = r(ystep)
+            local base_val = r(ymin_range)
+        }
+        local vtop = 0.94 * `ymax'
+        local ttop = 0.97 * `ymax'
+
+        dollar_labs ylabs `ymin' `ymax' `ystep'
+
+        local plotopts `common_opts'                                          ///
+                       ylabel(`ylabs', nogrid labcolor(black)                 ///
+                              tlcolor(gs10) tlwidth(vthin))                   ///
+                       yscale(lcolor(gs10) lwidth(vthin)                      ///
+                              range(`base_val' `ymax'))
+
+        * ---- event markers ----------------------------------------------
+        * The labels are per-deck vocabulary -- entry/completion,
+        * enrollment/graduation, entry/exit -- so they live here rather than
+        * being baked into a shared program.
+        *
+        * Keep them SHORT. On a one-year program the two markers sit a single
+        * x-unit apart and long centred labels run together: "Enrollment" and
+        * "Completion" read as one phrase, while "Entry" and "Completion" do
+        * not. Shortening the word beats nudging the label off its own line.
+        local vlines (pci `base_val' 0 `vtop' 0,                              ///
+                          lcolor(black) lpattern(shortdash) lwidth(vthin))    ///
+                     (pci `base_val' 2 `vtop' 2,                              ///
+                          lcolor(black) lpattern(shortdash) lwidth(vthin))
+
+        local vtext  text(`ttop' 0 "Enrollment", color(black) size(small))    ///
+                     text(`ttop' 2 "Graduation", color(black) size(small))
+
 
         * The first two plots match NO observations. They exist only to own
         * the legend keys, which keeps the legend identical across build steps
